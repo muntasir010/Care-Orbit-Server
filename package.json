@@ -3,10 +3,13 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "prisma":{
+    "schema": "./prisma/schema"
+  },
   "scripts": {
-  "dev": "bun --watch src/server.ts",
-  "build": "bun build ./src/server.ts --outdir ./dist",
-  "start": "bun src/server.ts"
+    "dev": "bun --watch src/server.ts",
+    "build": "bun build ./src/server.ts --outdir ./dist",
+    "start": "bun src/server.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -22,12 +25,15 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
+    "@types/pg": "^8.16.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "http-status": "^2.1.0",
-    "nodemailer": "^7.0.12"
+    "nodemailer": "^7.0.12",
+    "pg": "^8.16.3"
   }
 }
