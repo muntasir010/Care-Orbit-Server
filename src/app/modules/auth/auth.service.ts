@@ -4,6 +4,7 @@ import { UserStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import AppError from "../../errors/AppError";
 import { jwtHelper } from "../../helper/jwtHelper";
+import config from "../../config/config";
 
 const login = async (payload: { email: string; password: string }) => {
   const user = await prisma.user.findUniqueOrThrow({
@@ -23,14 +24,14 @@ const login = async (payload: { email: string; password: string }) => {
 
   const accessToken = jwtHelper.generateToken(
     { email: user.email, role: user.role },
-    "abcd",
-    "1h",
+    config.jwt.access_secret,
+    config.jwt.access_expires_in,
   );
 
   const refreshToken = jwtHelper.generateToken(
     { email: user.email, role: user.role },
-    "bcd",
-    "90d",
+    config.jwt.refresh_secret,
+    config.jwt.refresh_expires_in,
   );
 
   return {
