@@ -13,10 +13,10 @@ router.post(
   "/create-admin",
   fileUploader.upload.single("file"),
   (req: Request, res: Response, next: NextFunction) => {
-    req.body = UserValidation.createPatientZodSchema.parse(
+    req.body = UserValidation.createAdminZodSchema.parse(
       JSON.parse(req.body.data),
     );
-    return UserController.CreatePatientController(req, res, next);
+    return UserController.CreateAdminController(req, res, next);
   },
 );
 

@@ -4,6 +4,34 @@ import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 
+const CreateAdmin = async (req: Request) => {
+  const file = req.file;
+  if (file) {
+    const uploadProfileImage = await fileUploader.uploadToCloudinary(file);
+    if (!uploadProfileImage?.secure_url) {
+      throw new Error("Profile image upload failed");
+    }
+    req.body.admin.profilePhoto = uploadProfileImage?.secure_url;
+  }
+
+  const hashedPassword = await bcrypt.hash(
+    req.body.password,
+    Number(config.salt_round),
+  );
+  const result = await prisma.$transaction(async (tnx) => {
+    await tnx.user.create({
+      data: {
+        email: req.body.admin.email,
+        password: hashedPassword,
+      },
+    });
+    return await tnx.admin.create({
+      data: req.body.admin,
+    });
+  });
+  return result;
+};
+
 const CreateDoctor = async (req: Request) => {
   const file = req.file;
   if (file) {
@@ -63,4 +91,5 @@ const CreatePatient = async (req: Request) => {
 export const UserService = {
   CreatePatient,
   CreateDoctor,
+  CreateAdmin
 };
