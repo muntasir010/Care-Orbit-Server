@@ -2,7 +2,17 @@ import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { UserService } from "./user.service";
 
-const CreateAdminController = catchAsync(async (req, res) => {
+const getAllUsers = catchAsync(async(req, res) =>{
+  const result = await UserService.getAllUsers();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Users retrieved successfully",
+    data: result,
+  });
+})
+
+const CreateAdmin = catchAsync(async (req, res) => {
   const result = await UserService.CreateAdmin(req);
   sendResponse(res, {
     statusCode: 201,
@@ -12,7 +22,7 @@ const CreateAdminController = catchAsync(async (req, res) => {
   });
 });
 
-const CreateDoctorController = catchAsync(async (req, res) => {
+const CreateDoctor = catchAsync(async (req, res) => {
   const result = await UserService.CreateDoctor(req);
   sendResponse(res, {
     statusCode: 201,
@@ -22,7 +32,7 @@ const CreateDoctorController = catchAsync(async (req, res) => {
   });
 });
 
-const CreatePatientController = catchAsync(async (req, res) => {
+const CreatePatient= catchAsync(async (req, res) => {
   const result = await UserService.CreatePatient(req);
   sendResponse(res, {
     statusCode: 201,
@@ -33,7 +43,8 @@ const CreatePatientController = catchAsync(async (req, res) => {
 });
 
 export const UserController = {
-  CreatePatientController,
-  CreateDoctorController,
-  CreateAdminController,
+  getAllUsers,
+  CreatePatient,
+  CreateDoctor,
+  CreateAdmin,
 };

@@ -9,6 +9,8 @@ import { UserValidation } from "./user.validation";
 
 const router = express.Router();
 
+router.get("/", UserController.getAllUsers)
+
 router.post(
   "/create-admin",
   fileUploader.upload.single("file"),
@@ -16,7 +18,7 @@ router.post(
     req.body = UserValidation.createAdminZodSchema.parse(
       JSON.parse(req.body.data),
     );
-    return UserController.CreateAdminController(req, res, next);
+    return UserController.CreateAdmin(req, res, next);
   },
 );
 
@@ -27,7 +29,7 @@ router.post(
     req.body = UserValidation.createDoctorZodSchema.parse(
       JSON.parse(req.body.data),
     );
-    return UserController.CreateDoctorController(req, res, next);
+    return UserController.CreateDoctor(req, res, next);
   },
 );
 
@@ -39,7 +41,7 @@ router.post(
     req.body = UserValidation.createPatientZodSchema.parse(
       JSON.parse(req.body.data),
     );
-    return UserController.CreatePatientController(req, res, next);
+    return UserController.CreatePatient(req, res, next);
   },
 );
 

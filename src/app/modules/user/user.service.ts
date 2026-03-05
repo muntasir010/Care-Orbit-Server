@@ -4,6 +4,11 @@ import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 
+const getAllUsers = async () => {
+  const result = await prisma.user.findMany();
+  return result;
+};
+
 const CreateAdmin = async (req: Request) => {
   const file = req.file;
   if (file) {
@@ -89,7 +94,8 @@ const CreatePatient = async (req: Request) => {
 };
 
 export const UserService = {
+  getAllUsers,
   CreatePatient,
   CreateDoctor,
-  CreateAdmin
+  CreateAdmin,
 };
