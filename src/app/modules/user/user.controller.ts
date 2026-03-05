@@ -3,7 +3,8 @@ import sendResponse from "../../../shared/sendResponse";
 import { UserService } from "./user.service";
 
 const getAllUsers = catchAsync(async(req, res) =>{
-  const result = await UserService.getAllUsers();
+  const {page, limit} = req.query;
+  const result = await UserService.getAllUsers({page: Number(page), limit: Number(limit)});
   sendResponse(res, {
     statusCode: 200,
     success: true,

@@ -4,8 +4,15 @@ import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 
-const getAllUsers = async () => {
-  const result = await prisma.user.findMany();
+const getAllUsers = async ({
+  page,
+  limit,
+}: {
+  page: number;
+  limit: number;
+}) => {
+  const skip = (page - 1) * limit;
+  const result = await prisma.user.findMany({ skip, take: limit });
   return result;
 };
 
