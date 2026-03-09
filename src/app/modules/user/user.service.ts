@@ -7,12 +7,27 @@ import config from "../../config/config";
 const getAllUsers = async ({
   page,
   limit,
+  searchTerm,
 }: {
   page: number;
   limit: number;
+  searchTerm: any;
 }) => {
-  const skip = (page - 1) * limit;
-  const result = await prisma.user.findMany({ skip, take: limit });
+  
+  const pageNumber = page || 1;
+  const limitNumber = limit || 10;
+  const skip = (pageNumber - 1) * limitNumber;
+
+  const result = await prisma.user.findMany({
+    skip,
+    take: limitNumber,
+    where: {
+      email: {
+        contains: searchTerm,
+        mode: "insensitive",
+      },
+    },
+  });
   return result;
 };
 
