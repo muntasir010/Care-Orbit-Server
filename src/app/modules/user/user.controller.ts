@@ -3,8 +3,8 @@ import sendResponse from "../../../shared/sendResponse";
 import { UserService } from "./user.service";
 
 const getAllUsers = catchAsync(async(req, res) =>{
-  const {page, limit, searchTerm} = req.query;
-  const result = await UserService.getAllUsers({page: Number(page), limit: Number(limit), searchTerm: searchTerm || ""});
+  const {page, limit, searchTerm, sortBy, sortOrder} = req.query;
+  const result = await UserService.getAllUsers({page: Number(page), limit: Number(limit), searchTerm, sortBy, sortOrder});
   sendResponse(res, {
     statusCode: 200,
     success: true,

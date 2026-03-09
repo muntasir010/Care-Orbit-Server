@@ -8,12 +8,15 @@ const getAllUsers = async ({
   page,
   limit,
   searchTerm,
+  sortBy,
+  sortOrder,
 }: {
   page: number;
   limit: number;
   searchTerm: any;
+  sortBy: any;
+  sortOrder: any;
 }) => {
-  
   const pageNumber = page || 1;
   const limitNumber = limit || 10;
   const skip = (pageNumber - 1) * limitNumber;
@@ -27,6 +30,14 @@ const getAllUsers = async ({
         mode: "insensitive",
       },
     },
+    orderBy:
+      sortBy && sortOrder
+        ? {
+            [sortBy]: sortOrder,
+          }
+        : {
+            createdAt: "asc",
+          },
   });
   return result;
 };
