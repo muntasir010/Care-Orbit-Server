@@ -1,18 +1,20 @@
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import pick from "../../helper/pick";
+import { userFilterableFields, userOptionAbleFields } from "./user.constants";
 import { UserService } from "./user.service";
 
 const getAllUsers = catchAsync(async(req, res) =>{
-  const filters = pick(req.query, ["status", "role", "email", "searchTerm"]);
-  const options = pick(req.query, ["page", "limit", "searchTerm", "sortBy", "sortOrder", ])
+  const filters = pick(req.query, userFilterableFields);
+  const options = pick(req.query, userOptionAbleFields)
    
   const result = await UserService.getAllUsers( filters, options);
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: "Users retrieved successfully",
-    data: result,
+    meta: result.meta,
+    data: result.data
   });
 })
 
