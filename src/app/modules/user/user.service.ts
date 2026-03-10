@@ -4,30 +4,45 @@ import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 import { paginationHelper } from "../../helper/paginationHelper";
+import { Prisma } from "@prisma/client";
+import { userSearchableFields } from "./user.constants";
 
-const getAllUsers = async (params: any, options:any) => {
- 
-  const {page, limit, skip, sortBy, sortOrder} = paginationHelper.calculatePagination(options)
+const getAllUsers = async (params: any, options: any) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+  const { searchTerm, ...filerData } = params;
+
+  const andConditions: Prisma.UserWhereInput[] = [];
+  if (searchTerm) {
+    andConditions.push({
+      OR: userSearchableFields.map((field) => ({
+        [field]: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  if (Object.keys(filerData).length > 0) {
+    andConditions.push({
+      AND: Object.keys(filerData).map((key) => ({
+        [key]: {
+          equals: (filerData as any)[key],
+        },
+      })),
+    });
+  }
 
   const result = await prisma.user.findMany({
     skip,
     take: limit,
     where: {
-      email: {
-        contains: searchTerm,
-        mode: "insensitive",
-      },
-      status: status,
-      role: role
+      AND: andConditions
     },
-    orderBy:
-      sortBy && sortOrder
-        ? {
-            [sortBy]: sortOrder,
-          }
-        : {
-            createdAt: "asc",
-          },
+    orderBy: {
+      [sortBy]: sortOrder
+    }
   });
   return result;
 };
