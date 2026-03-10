@@ -3,32 +3,22 @@ import prisma from "../../../shared/prisma";
 import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
+import { paginationHelper } from "../../helper/paginationHelper";
 
-const getAllUsers = async ({
-  page,
-  limit,
-  searchTerm,
-  sortBy,
-  sortOrder,
-}: {
-  page: number;
-  limit: number;
-  searchTerm: any;
-  sortBy: any;
-  sortOrder: any;
-}) => {
-  const pageNumber = page || 1;
-  const limitNumber = limit || 10;
-  const skip = (pageNumber - 1) * limitNumber;
+const getAllUsers = async (params: any, options:any) => {
+ 
+  const {page, limit, skip, sortBy, sortOrder} = paginationHelper.calculatePagination(options)
 
   const result = await prisma.user.findMany({
     skip,
-    take: limitNumber,
+    take: limit,
     where: {
       email: {
         contains: searchTerm,
         mode: "insensitive",
       },
+      status: status,
+      role: role
     },
     orderBy:
       sortBy && sortOrder
