@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 import { paginationHelper } from "../../helper/paginationHelper";
-import { Prisma } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 import { userSearchableFields } from "./user.constants";
 
 const getAllUsers = async (params: any, options: any) => {
@@ -82,6 +82,7 @@ const CreateAdmin = async (req: Request) => {
       data: {
         email: req.body.admin.email,
         password: hashedPassword,
+        role: UserRole.ADMIN,
       },
     });
     return await tnx.admin.create({
@@ -110,6 +111,7 @@ const CreateDoctor = async (req: Request) => {
       data: {
         email: req.body.doctor.email,
         password: hashedPassword,
+        role: UserRole.DOCTOR
       },
     });
     return await tnx.doctor.create({

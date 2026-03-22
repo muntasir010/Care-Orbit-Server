@@ -13,8 +13,9 @@ const router = express.Router();
 
 router.get("/", auth(UserRole.ADMIN), UserController.getAllUsers)
 
+// admin
 router.post(
-  "/create-admin",
+  "/create-admin", auth(UserRole.ADMIN),
   fileUploader.upload.single("file"),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = UserValidation.createAdminZodSchema.parse(
@@ -24,8 +25,9 @@ router.post(
   },
 );
 
+// doctor
 router.post(
-  "/create-doctor",
+  "/create-doctor", auth(UserRole.ADMIN),
   fileUploader.upload.single("file"),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = UserValidation.createDoctorZodSchema.parse(
@@ -35,7 +37,7 @@ router.post(
   },
 );
 
-
+// patient
 router.post(
   "/create-patient",
   fileUploader.upload.single("file"),
