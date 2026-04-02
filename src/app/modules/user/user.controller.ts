@@ -1,6 +1,6 @@
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
-import pick from "../../helper/pick";
+import pick from "../../interfaces/pick";
 import { userFilterableFields, userOptionAbleFields } from "./user.constants";
 import { UserService } from "./user.service";
 

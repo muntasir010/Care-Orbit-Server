@@ -3,7 +3,7 @@ import prisma from "../../../shared/prisma";
 import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
-import { paginationHelper } from "../../helper/paginationHelper";
+import { paginationHelper } from "../../interfaces/paginationHelper";
 import { Prisma, UserRole } from "@prisma/client";
 import { userSearchableFields } from "./user.constants";
 
