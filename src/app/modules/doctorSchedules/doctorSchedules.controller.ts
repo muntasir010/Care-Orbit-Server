@@ -18,7 +18,19 @@ const insertIntoDB = catchAsync(async (req: Request & { user?: IAuthUser }, res:
     });
 });
 
+const schedulesForDoctor = catchAsync(async(req, res)=>{
+    const result = await DoctorSchedulesServices.schedulesForDoctor();
+
+    sendResponse(res,{
+        statusCode: 201,
+        success: true,
+        message: "Schedules Fetch Successfully!",
+        data: result
+    })
+})
+
 
 export const DoctorScheduleControllers = {
     insertIntoDB,
+    schedulesForDoctor,
 }
