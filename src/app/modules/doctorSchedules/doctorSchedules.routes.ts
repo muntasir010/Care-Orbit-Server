@@ -3,6 +3,21 @@ import { DoctorScheduleControllers } from './doctorSchedules.controller';
 
 const router = express.Router();
 
-router.post("/create-schedules", DoctorScheduleControllers.insertIntoDB);
+router.get(
+    '/',
+    DoctorScheduleControllers.schedulesForDoctor
+)
+
+router.post(
+    '/',
+    DoctorScheduleControllers.insertIntoDB
+);
+
+router.delete(
+    '/:id',
+    DoctorScheduleControllers.deleteSchedulesFromDB
+);
+
+
 
 export const doctorSchedulesRoutes= router;
