@@ -129,7 +129,7 @@ const deleteSchedulesFromDB = async (id: string)=>{
   })
 }
 
-export const DoctorSchedulesServices = {
+export const ScheduleService = {
   insertIntoDB,
   schedulesForDoctor,
   deleteSchedulesFromDB,
