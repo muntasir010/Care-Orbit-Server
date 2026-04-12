@@ -1,15 +1,15 @@
-import prisma from "../../../shared/prisma";
-import type { IJWTPayload } from "../../types/common";
+import type { IAuthUser } from "../../interfaces/common";
+import prisma from "../../shared/prisma";
 
 const insertIntoDB = async (
-  user: IJWTPayload,
+  user: IAuthUser,
   payload: {
     scheduleIds: string[];
   },
 ) => {
   const doctorData = await prisma.doctor.findUniqueOrThrow({
     where: {
-      email: user.email,
+      email: user?.email,
     },
   });
 
