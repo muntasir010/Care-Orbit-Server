@@ -8,7 +8,7 @@ const globalErrorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  let statusCode = err.statusCode || 500;
+  let statusCode = err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
   let message = err.message || "Something went wrong!";
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {

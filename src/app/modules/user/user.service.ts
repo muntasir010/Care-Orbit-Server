@@ -1,11 +1,13 @@
+import httpStatus from 'http-status';
 import { type Request } from "express";
-import prisma from "../../../shared/prisma";
 import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 import { paginationHelper } from "../../interfaces/paginationHelper";
 import { Prisma, UserRole } from "@prisma/client";
 import { userSearchableFields } from "./user.constants";
+import AppError from "../../errors/AppError";
+import prisma from '../../shared/prisma';
 
 const getAllUsers = async (params: any, options: any) => {
   const { page, limit, skip, sortBy, sortOrder } =
@@ -68,7 +70,7 @@ const CreateAdmin = async (req: Request) => {
   if (file) {
     const uploadProfileImage = await fileUploader.uploadToCloudinary(file);
     if (!uploadProfileImage?.secure_url) {
-      throw new Error("Profile image upload failed");
+      throw new AppError(httpStatus.BAD_REQUEST ,"Profile image upload failed");
     }
     req.body.admin.profilePhoto = uploadProfileImage?.secure_url;
   }
@@ -97,7 +99,7 @@ const CreateDoctor = async (req: Request) => {
   if (file) {
     const uploadedProfileImage = await fileUploader.uploadToCloudinary(file);
     if (!uploadedProfileImage?.secure_url) {
-      throw new Error("Profile image upload failed");
+      throw new AppError(httpStatus.BAD_REQUEST, "Profile image upload failed");
     }
     req.body.doctor.profilePhoto = uploadedProfileImage?.secure_url;
   }
@@ -126,7 +128,7 @@ const CreatePatient = async (req: Request) => {
   if (file) {
     const uploadedProfileImage = await fileUploader.uploadToCloudinary(file);
     if (!uploadedProfileImage?.secure_url) {
-      throw new Error("Profile image upload failed");
+      throw new AppError(httpStatus.BAD_REQUEST, "Profile image upload failed");
     }
     req.body.patient.profilePhoto = uploadedProfileImage?.secure_url;
   }
