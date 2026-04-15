@@ -24,7 +24,24 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const deleteFromDB = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    if (!id || Array.isArray(id)) {
+        throw new Error('Invalid ID');
+    }
+    
+    const result = await SpecialtiesService.deleteFromDB(id);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Specialty deleted successfully',
+        data: result,
+    });
+});
+
 export const SpecialtiesController = {
     insertIntoDB,
     getAllFromDB,
+    deleteFromDB,
 }
