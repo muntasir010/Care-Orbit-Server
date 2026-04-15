@@ -6,6 +6,11 @@ import { SpecialtiesController } from './specialties.controller';
 
 const router = express.Router();
 
+router.get(
+    '/',
+    SpecialtiesController.getAllFromDB
+);
+
 router.post(
     '/',
     fileUploader.upload.single('file'),
