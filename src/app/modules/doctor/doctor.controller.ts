@@ -21,7 +21,8 @@ const getAllFromDB = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Doctor fetched successfully",
-    data: result,
+    meta: result.meta,
+    data: result.data
   });
 });
 
