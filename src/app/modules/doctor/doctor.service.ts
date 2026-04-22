@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Doctor, Prisma } from "@prisma/client";
 import {
   paginationHelper,
   type IOptions,
@@ -59,6 +59,21 @@ const getAllFromDB = async (filters: any, options: IOptions) => {
   };
 };
 
+const updateIntoDB = async (id: string, payload: Partial<Doctor>) => {
+  const doctorInfo = await prisma.doctor.findUniqueOrThrow({
+    where: { id },
+  });
+
+  const updateData = await prisma.doctor.update({
+    where: {
+      id: doctorInfo.id,
+    },
+    data: payload,
+  });
+  return updateData;
+};
+
 export const DoctorService = {
   getAllFromDB,
+  updateIntoDB,
 };
