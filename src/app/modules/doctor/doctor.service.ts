@@ -60,15 +60,42 @@ const getAllFromDB = async (filters: any, options: IOptions) => {
   };
 };
 
-const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) => {
+const updateIntoDB = async (
+  id: string,
+  payload: Partial<IDoctorUpdateInput>,
+) => {
   const doctorInfo = await prisma.doctor.findUniqueOrThrow({
     where: { id },
   });
 
-  const {specialties, ...doctorData} = payload;
+  const { specialties, ...doctorData } = payload;
 
-  if(specialties && specialties.length > 0){
+  if (specialties && specialties.length > 0) {
+    const deleteSpecialtyIds = specialties.filter(
+      (specialty) => specialty.isDeleted,
+    );
 
+    for (const specialty of deleteSpecialtyIds) {
+      await prisma.doctorSpecialties.deleteMany({
+        where: {
+          doctorId: id,
+          specialtiesId: specialty.specialtyId,
+        },
+      });
+    }
+
+    const createSpecialtyIds = specialties.filter(
+      (specialty) => !specialty.isDeleted,
+    );
+
+    for (const specialty of createSpecialtyIds) {
+      await prisma.doctorSpecialties.create({
+        data: {
+          doctorId: id,
+          specialtiesId: specialty.specialtyId,
+        },
+      });
+    }
   }
 
   const updateData = await prisma.doctor.update({
@@ -76,6 +103,13 @@ const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
       id: doctorInfo.id,
     },
     data: doctorData,
+    include: {
+      doctorSpecialties: {
+        include: {
+          specialties: true,
+        },
+      },
+    },
   });
   return updateData;
 };
