@@ -25,6 +25,21 @@ const getAllFromDB = async (filters: any, options: IOptions) => {
     });
   }
 
+  if (specialties && specialties.length > 0) {
+    andCondition.push({
+      doctorSpecialties: {
+        some: {
+          specialties: {
+            title: {
+              contains: specialties,
+              mode: "insensitive",
+            },
+          },
+        },
+      },
+    });
+  }
+
   if (Object.keys(filterData).length > 0) {
     const filterConditions = Object.keys(filterData).map((key) => ({
       [key]: {
@@ -43,6 +58,13 @@ const getAllFromDB = async (filters: any, options: IOptions) => {
     take: limit,
     orderBy: {
       [sortBy]: sortOrder,
+    },
+    include: {
+      doctorSpecialties: {
+        include: {
+          specialties: true,
+        },
+      },
     },
   });
 
