@@ -1,3 +1,4 @@
+import httpStatus from "http-status";
 import type { Prisma } from "@prisma/client";
 import {
   paginationHelper,
@@ -6,6 +7,8 @@ import {
 import { doctorSearchableFields } from "./doctor.constant";
 import prisma from "../../shared/prisma";
 import type { IDoctorUpdateInput } from "./doctor.interface";
+import AppError from "../../errors/AppError";
+import { openai } from "../../helper/open-router";
 
 const getAllFromDB = async (filters: any, options: IOptions) => {
   const { page, skip, limit, sortBy, sortOrder } =
@@ -138,7 +141,52 @@ const updateIntoDB = async (
   });
 };
 
+const getAISuggestions = async (payload: { symptom: string }) => {
+  if (!(payload && payload.symptom)) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Symptom required");
+  }
+
+  const doctors = await prisma.doctor.findMany({
+    where: { isDeleted: false },
+    include: {
+      doctorSpecialties: {
+        include: {
+          specialties: true,
+        },
+      },
+    },
+  });
+
+  const prompt = `You are a medical assistant AI. Based on the patient's symptoms, suggest the top 3 suitable doctors.
+  Each doctor has specialties and years of experience.
+  Only suggest doctors who are relevant to the given symptom.
+  
+  Symptoms: ${payload.symptom}
+  
+  Here is the doctor list (in JSON): ${JSON.stringify(doctors, null, 2)}
+  
+  Return your response in JSON format with full individual doctor data.`;
+
+  async function main() {
+    const completion = await openai.chat.completions.create({
+      model: "tencent/hy3-preview:free",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful AI medical assistant that provides doctor suggestions.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+  }
+};
+
 export const DoctorService = {
   getAllFromDB,
   updateIntoDB,
+  getAISuggestions,
 };
