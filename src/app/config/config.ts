@@ -19,4 +19,5 @@ export default {
     refresh_secret: process.env.JWT_REFRESH_SECRET as string,
     refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN as string,
   },
+  openRouter_api_key: process.env.OPENROUTER_API_KEY,
 };
