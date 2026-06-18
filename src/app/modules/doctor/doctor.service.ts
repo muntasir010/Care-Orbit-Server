@@ -100,8 +100,8 @@ const getByIdFromDB = async (id: string): Promise<Doctor | null> => {
       },
       doctorSchedules: {
         include: {
-          schedule: true
-        }
+          schedule: true,
+        },
       },
       review: true,
     },
@@ -165,6 +165,24 @@ const updateIntoDB = async (
   });
 };
 
+const deleteFromDB = async (id: string): Promise<Doctor> => {
+  return await prisma.$transaction(async (transactionClient) => {
+    const deleteDoctor = await transactionClient.doctor.delete({
+      where: {
+        id,
+      },
+    });
+
+    await transactionClient.user.delete({
+      where: {
+        email: deleteDoctor.email,
+      },
+    });
+
+    return deleteDoctor;
+  });
+};
+
 const getAISuggestions = async (payload: { symptom: string }) => {
   if (!(payload && payload.symptom)) {
     throw new AppError(httpStatus.BAD_REQUEST, "Symptom required");
@@ -211,11 +229,10 @@ const getAISuggestions = async (payload: { symptom: string }) => {
   return result;
 };
 
-
-
 export const DoctorService = {
   getAllFromDB,
   getByIdFromDB,
   updateIntoDB,
+  deleteFromDB,
   getAISuggestions,
 };
