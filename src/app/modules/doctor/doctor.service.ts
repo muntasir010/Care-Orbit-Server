@@ -1,5 +1,5 @@
 import httpStatus from "http-status";
-import type { Prisma } from "@prisma/client";
+import type { Doctor, Prisma } from "@prisma/client";
 import {
   paginationHelper,
   type IOptions,
@@ -84,6 +84,29 @@ const getAllFromDB = async (filters: any, options: IOptions) => {
     },
     data: result,
   };
+};
+
+const getByIdFromDB = async (id: string): Promise<Doctor | null> => {
+  const result = await prisma.doctor.findUnique({
+    where: {
+      id,
+      isDeleted: false,
+    },
+    include: {
+      doctorSpecialties: {
+        include: {
+          specialties: true,
+        },
+      },
+      doctorSchedules: {
+        include: {
+          schedule: true
+        }
+      },
+      review: true,
+    },
+  });
+  return result;
 };
 
 const updateIntoDB = async (
@@ -188,8 +211,11 @@ const getAISuggestions = async (payload: { symptom: string }) => {
   return result;
 };
 
+
+
 export const DoctorService = {
   getAllFromDB,
+  getByIdFromDB,
   updateIntoDB,
   getAISuggestions,
 };
