@@ -1,5 +1,5 @@
 import httpStatus from "http-status";
-import type { Doctor, Prisma } from "@prisma/client";
+import { UserStatus, type Doctor, type Prisma } from "@prisma/client";
 import {
   paginationHelper,
   type IOptions,
@@ -183,6 +183,28 @@ const deleteFromDB = async (id: string): Promise<Doctor> => {
   });
 };
 
+const softDelete = async (id: string): Promise<Doctor> => {
+  return await prisma.$transaction(async (transactionClient) => {
+    const deleteDoctor = await transactionClient.doctor.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+      },
+    });
+
+    await transactionClient.user.update({
+      where: {
+        email: deleteDoctor.email,
+      },
+      data: {
+        status: UserStatus.DELETED,
+      },
+    });
+
+    return deleteDoctor;
+  });
+};
+
 const getAISuggestions = async (payload: { symptom: string }) => {
   if (!(payload && payload.symptom)) {
     throw new AppError(httpStatus.BAD_REQUEST, "Symptom required");
@@ -234,5 +256,6 @@ export const DoctorService = {
   getByIdFromDB,
   updateIntoDB,
   deleteFromDB,
+  softDelete,
   getAISuggestions,
 };
