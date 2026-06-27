@@ -8,8 +8,16 @@ import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFound from "./app/middlewares/notFound";
 import router from "./app/routes";
 import cookieParser from "cookie-parser";
+import { PaymentController } from "./app/modules/payment/payment.controller";
 
 const app: Application = express();
+
+app.post(
+  "/api/v1/payment/webhook",
+  express.raw({ type: "application/json" }),
+  PaymentController.handleStripeWebhookEvent,
+);
+
 const port = process.env.PORT;
 
 app.use(cookieParser());

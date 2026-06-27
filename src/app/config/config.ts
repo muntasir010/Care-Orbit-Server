@@ -20,4 +20,5 @@ export default {
     refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN as string,
   },
   openRouter_api_key: process.env.OPENROUTER_API_KEY,
+  stripe_secret_key: process.env.STRIPE_SECRET_KEY,
 };
