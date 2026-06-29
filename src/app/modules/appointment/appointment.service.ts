@@ -1,7 +1,14 @@
+import httpStatus from 'http-status';
+import { AppointmentStatus, Prisma, UserRole } from "@prisma/client";
 import { stripe } from "../../helper/stripe";
 import type { IAuthUser } from "../../interfaces/common";
 import prisma from "../../shared/prisma";
 import { v4 as uuidV4 } from "uuid";
+import {
+  paginationHelper,
+  type IOptions,
+} from "../../interfaces/paginationHelper";
+import AppError from "../../errors/AppError";
 
 const createAppointment = async (
   user: IAuthUser,
@@ -90,6 +97,132 @@ const createAppointment = async (
   return result;
 };
 
+const getMyAppointment = async (
+  user: IAuthUser,
+  filters: any,
+  options: IOptions,
+) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+  const { ...filterData } = filters;
+
+  const andConditions: Prisma.AppointmentWhereInput[] = [];
+
+  if (user?.role === UserRole.PATIENT) {
+    andConditions.push({
+      patient: {
+        email: user?.email,
+      },
+    });
+  } else if (user?.role === UserRole.DOCTOR) {
+    andConditions.push({
+      doctor: {
+        email: user?.email,
+      },
+    });
+  }
+
+  if (Object.keys(filterData).length > 0) {
+    const filterConditions = Object.keys(filterData).map((key) => ({
+      [key]: {
+        equals: (filterData as any)[key],
+      },
+    }));
+
+    andConditions.push(...filterConditions);
+  }
+
+  const whereConditions: Prisma.AppointmentWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const result = await prisma.appointment.findMany({
+    where: whereConditions,
+    skip,
+    take: limit,
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
+    include:
+      user?.role === UserRole.DOCTOR
+        ? {
+            patient: true,
+            schedule: true,
+            prescription: true,
+            review: true,
+            payment: true,
+            doctor: {
+              include: {
+                doctorSpecialties: {
+                  include: {
+                    specialties: true,
+                  },
+                },
+              },
+            },
+          }
+        : {
+            doctor: {
+              include: {
+                doctorSpecialties: {
+                  include: {
+                    specialties: true,
+                  },
+                },
+              },
+            },
+            schedule: true,
+            prescription: true,
+            review: true,
+            payment: true,
+            patient: true,
+          },
+  });
+
+  const total = await prisma.appointment.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      total,
+      limit,
+      page,
+    },
+    data: result,
+  };
+};
+
+const updateAppointmentStatus = async (
+  appointmentId: string,
+  status: AppointmentStatus,
+  user: IAuthUser,
+) => {
+  const appointmentData = await prisma.appointment.findUniqueOrThrow({
+    where: {
+      id: appointmentId,
+    },
+    include: {
+      doctor: true,
+    },
+  });
+
+  if(user?.role === UserRole.DOCTOR ){
+    if(!(user.email === appointmentData.doctor.email))
+      throw new AppError(httpStatus.BAD_REQUEST, "You are not the owner of this appointment");
+  }
+
+  return await prisma.appointment.update({
+    where: {
+      id: appointmentId,
+    },
+    data: {
+      status,
+    },
+  });
+};
+
 export const AppointmentService = {
   createAppointment,
+  getMyAppointment,
+  updateAppointmentStatus,
 };

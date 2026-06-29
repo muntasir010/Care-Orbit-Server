@@ -4,6 +4,7 @@ import catchAsync from "../../shared/catchAsync";
 import type { IAuthUser } from "../../interfaces/common";
 import { AppointmentService } from "./appointment.service";
 import sendResponse from "../../shared/sendResponse";
+import pick from "../../interfaces/pick";
 
 const createAppointment = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
@@ -22,6 +23,51 @@ const createAppointment = catchAsync(
   },
 );
 
+const getMyAppointment = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const user = req.user;
+    const filters = pick(req.query, ["status", "paymentStatus"]);
+    const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+
+    const result = await AppointmentService.getMyAppointment(
+      user as IAuthUser,
+      filters,
+      options,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "My Appointment retrieve successfully",
+      data: result.data,
+      meta: result.meta,
+    });
+  },
+);
+
+const updateAppointmentStatus = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const user = req.user;
+
+    const result = await AppointmentService.updateAppointmentStatus(
+      id as string,
+      status,
+      user as IAuthUser,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Appointment status updated successfully",
+      data: result,
+    });
+  },
+);
+
 export const AppointmentController = {
   createAppointment,
+  getMyAppointment,
+  updateAppointmentStatus,
 };
