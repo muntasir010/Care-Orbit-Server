@@ -7,10 +7,10 @@ import type { IAuthUser } from "../../interfaces/common";
 import pick from "../../interfaces/pick";
 import { prescriptionFilterableFields } from "./prescription.constant";
 
-const createPrescription = catchAsync(
+const insertIntoDB = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
     const user = req.user;
-    const result = await PrescriptionService.createPrescription(
+    const result = await PrescriptionService.insertIntoDB(
       user as IAuthUser,
       req.body,
     );
@@ -23,6 +23,19 @@ const createPrescription = catchAsync(
     });
   },
 );
+
+const patientPrescription = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const user = req.user;
+    const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
+    const result = await PrescriptionService.patientPrescription(user as IAuthUser, options);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Prescription fetched successfully',
+        meta: result.meta,
+        data: result.data
+    });
+});
 
 const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, prescriptionFilterableFields);
@@ -38,6 +51,7 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const PrescriptionController = {
-  createPrescription,
+  insertIntoDB,
+  patientPrescription,
   getAllFromDB,
 };

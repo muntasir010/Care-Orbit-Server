@@ -14,7 +14,7 @@ import {
   type IPaginationOptions,
 } from "../../interfaces/paginationHelper";
 
-const createPrescription = async (
+const insertIntoDB = async (
   user: IAuthUser,
   payload: Partial<Prescription>,
 ) => {
@@ -52,6 +52,45 @@ const createPrescription = async (
   });
 
   return result;
+};
+
+const patientPrescription = async (user: IAuthUser, options: IPaginationOptions) => {
+    const { limit, page, skip } = paginationHelper.calculatePagination(options);
+
+    const result = await prisma.prescription.findMany({
+        where: {
+            patient: {
+                email: user?.email
+            }
+        },
+        skip,
+        take: limit,
+        orderBy: options.sortBy && options.sortOrder
+            ? { [options.sortBy]: options.sortOrder }
+            : { createdAt: 'desc' },
+        include: {
+            doctor: true,
+            patient: true,
+            appointment: true
+        }
+    });
+
+    const total = await prisma.prescription.count({
+        where: {
+            patient: {
+                email: user?.email
+            }
+        }
+    })
+
+    return {
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    };
 };
 
 const getAllFromDB = async (filters: any, options: IPaginationOptions) => {
@@ -109,6 +148,7 @@ const getAllFromDB = async (filters: any, options: IPaginationOptions) => {
 };
 
 export const PrescriptionService = {
-  createPrescription,
+  insertIntoDB,
   getAllFromDB,
+  patientPrescription
 };
