@@ -5,6 +5,12 @@ import { PrescriptionController } from "./prescription.controller";
 
 const router = express.Router();
 
+router.get(
+    '/',
+    auth(UserRole.ADMIN),
+    PrescriptionController.getAllFromDB
+);
+
 router.post(
   "/",
   auth(UserRole.DOCTOR),
