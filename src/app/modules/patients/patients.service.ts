@@ -1,4 +1,4 @@
-import type { Patient, Prisma } from "@prisma/client";
+import { UserStatus, type Patient, type Prisma } from "@prisma/client";
 import { paginationHelper, type IPaginationOptions } from "../../interfaces/paginationHelper";
 import prisma from "../../shared/prisma";
 import type { IPatientFilterRequest } from "./patient.interface";
@@ -101,7 +101,30 @@ const getByIdFromDB = async (id: string): Promise<Patient | null> => {
   return result;
 };
 
+const softDelete = async (id: string): Promise<Patient | null> => {
+  return await prisma.$transaction(async transactionClient => {
+    const deletedPatient = await transactionClient.patient.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+      },
+    });
+
+    await transactionClient.user.update({
+      where: {
+        email: deletedPatient.email,
+      },
+      data: {
+        status: UserStatus.DELETED,
+      },
+    });
+
+    return deletedPatient;
+  });
+};
+
 export const PatientsServices = {
     getAllFromDB,
     getByIdFromDB,
+    softDelete,
 }

@@ -7,4 +7,6 @@ router.get("/", PatientsController.getAllFromDB);
 
 router.get("/:id", PatientsController.getByIdFromDB);
 
+router.delete("/soft/:id", PatientsController.softDelete);
+
 export const PatientRoutes = router;
