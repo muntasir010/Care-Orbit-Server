@@ -69,6 +69,7 @@ const getAllFromDB = async (filters: any, options: IOptions) => {
           specialties: true,
         },
       },
+      review: true,
     },
   });
 
