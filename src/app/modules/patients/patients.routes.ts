@@ -5,4 +5,6 @@ const router = express.Router();
 
 router.get("/", PatientsController.getAllFromDB);
 
+router.get("/:id", PatientsController.getByIdFromDB);
+
 export const PatientRoutes = router;

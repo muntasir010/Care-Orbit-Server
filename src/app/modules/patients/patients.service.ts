@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Patient, Prisma } from "@prisma/client";
 import { paginationHelper, type IPaginationOptions } from "../../interfaces/paginationHelper";
 import prisma from "../../shared/prisma";
 import type { IPatientFilterRequest } from "./patient.interface";
@@ -87,6 +87,21 @@ const getAllFromDB = async (
   };
 };
 
+const getByIdFromDB = async (id: string): Promise<Patient | null> => {
+  const result = await prisma.patient.findUnique({
+    where: {
+      id,
+      isDeleted: false,
+    },
+    include: {
+      medicalReport: true,
+      patientHealthData: true,
+    },
+  });
+  return result;
+};
+
 export const PatientsServices = {
-    getAllFromDB
+    getAllFromDB,
+    getByIdFromDB,
 }
