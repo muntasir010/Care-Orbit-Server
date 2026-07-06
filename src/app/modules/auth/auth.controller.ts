@@ -1,3 +1,4 @@
+import type{ Request, Response } from 'express';
 import httpStatus from 'http-status';
 import { AuthService } from "./auth.service";
 import catchAsync from '../../shared/catchAsync';
@@ -164,7 +165,24 @@ const refreshToken = catchAsync(async (req, res) => {
   });
 });
 
+const changePassword = catchAsync(
+  async (req: Request & { user?: any }, res: Response) => {
+    const user = req.user;
+
+    const result = await AuthService.changePassword(user, req.body);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Password Changed successfully",
+      data: result,
+    });
+  }
+);
+
+
 export const AuthController = {
   loginUser,
   refreshToken,
+  changePassword,
 };
