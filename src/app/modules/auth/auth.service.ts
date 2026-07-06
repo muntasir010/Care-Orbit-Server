@@ -7,7 +7,7 @@ import config from "../../config/config";
 import prisma from "../../shared/prisma";
 import type { Secret } from "jsonwebtoken";
 
-const login = async (payload: { email: string; password: string }) => {
+const loginUser = async (payload: { email: string; password: string }) => {
   const user = await prisma.user.findUniqueOrThrow({
     where: {
       email: payload.email,
@@ -85,6 +85,6 @@ const refreshToken = async (token: string) => {
 };
 
 export const AuthService = {
-  login,
+  loginUser,
   refreshToken,
 };

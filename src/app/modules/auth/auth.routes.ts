@@ -3,7 +3,7 @@ import { AuthController } from "./auth.controller";
 
 const router = express.Router();
 
-router.post("/login", AuthController.login);
+router.post("/login", AuthController.loginUser);
 
 router.post("/refresh-token", AuthController.refreshToken);
 
