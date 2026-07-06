@@ -2,6 +2,7 @@ import express from "express";
 import { AuthController } from "./auth.controller";
 import auth from "../../middlewares/auth";
 import { UserRole } from "@prisma/client";
+import type { Request, Response, NextFunction } from "express";
 
 const router = express.Router();
 
@@ -16,5 +17,21 @@ router.post(
 );
 
 router.post("/forgot-password", AuthController.forgotPassword);
+
+router.post(
+  "/reset-password",
+  (req: Request, res: Response, next: NextFunction) => {
+    //user is resetting password without token and logged in newly created admin or doctor
+    if (!req.headers.authorization && req.cookies.accessToken) {
+      console.log(req.headers.authorization, "from reset password route guard");
+      console.log(req.cookies.accessToken, "from reset password route guard");
+      auth(UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT)(req, res, next);
+    } else {
+      //user is resetting password via email link with token
+      next();
+    }
+  },
+  AuthController.resetPassword,
+);
 
 export const authRoutes = router;
