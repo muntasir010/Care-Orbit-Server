@@ -18,7 +18,14 @@ export default {
     access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN as string,
     refresh_secret: process.env.JWT_REFRESH_SECRET as string,
     refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN as string,
+    reset_pass_secret: process.env.JWT_RESET_PASS_SECRET,
+    reset_pass_token_expires_in: process.env.JWT_RESET_PASS_TOKEN_EXPIRES_IN,
   },
   openRouter_api_key: process.env.OPENROUTER_API_KEY,
   stripe_secret_key: process.env.STRIPE_SECRET_KEY,
+  emailSender: {
+    email: process.env.EMAIL_USER,
+    app_pass: process.env.EMAIL_APP_PASSWORD,
+  },
+  reset_pass_link: process.env.RESET_PASS_LINK,
 };
