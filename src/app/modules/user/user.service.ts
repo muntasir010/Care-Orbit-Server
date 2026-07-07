@@ -1,13 +1,14 @@
-import httpStatus from 'http-status';
+import httpStatus from "http-status";
 import { type Request } from "express";
 import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 import { paginationHelper } from "../../interfaces/paginationHelper";
-import { Prisma, UserRole } from "@prisma/client";
+import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import { userSearchableFields } from "./user.constants";
 import AppError from "../../errors/AppError";
-import prisma from '../../shared/prisma';
+import prisma from "../../shared/prisma";
+import type { IAuthUser } from "../../interfaces/common";
 
 const getAllUsers = async (params: any, options: any) => {
   const { page, limit, skip, sortBy, sortOrder } =
@@ -70,7 +71,7 @@ const CreateAdmin = async (req: Request) => {
   if (file) {
     const uploadProfileImage = await fileUploader.uploadToCloudinary(file);
     if (!uploadProfileImage?.secure_url) {
-      throw new AppError(httpStatus.BAD_REQUEST ,"Profile image upload failed");
+      throw new AppError(httpStatus.BAD_REQUEST, "Profile image upload failed");
     }
     req.body.admin.profilePhoto = uploadProfileImage?.secure_url;
   }
@@ -113,7 +114,7 @@ const CreateDoctor = async (req: Request) => {
       data: {
         email: req.body.doctor.email,
         password: hashedPassword,
-        role: UserRole.DOCTOR
+        role: UserRole.DOCTOR,
       },
     });
     return await tnx.doctor.create({
@@ -151,9 +152,53 @@ const CreatePatient = async (req: Request) => {
   return result;
 };
 
+const getMyProfile = async (user: IAuthUser) => {
+  const userInfo = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: user?.email,
+      status: UserStatus.ACTIVE,
+    },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      needPasswordChange: true,
+      status: true,
+    },
+  });
+
+  let profileData;
+
+  if (userInfo.role === UserRole.PATIENT) {
+    profileData = await prisma.patient.findUnique({
+      where: {
+        email: userInfo.email,
+      },
+    });
+  } else if (userInfo.role === UserRole.DOCTOR) {
+    profileData = await prisma.doctor.findUnique({
+      where: {
+        email: userInfo.email,
+      },
+    });
+  } else if (userInfo.role === UserRole.ADMIN) {
+    profileData = await prisma.admin.findUnique({
+      where: {
+        email: userInfo.email,
+      },
+    });
+  }
+  
+  return {
+    ...userInfo,
+    ...profileData,
+  };
+};
+
 export const UserService = {
   getAllUsers,
   CreatePatient,
   CreateDoctor,
   CreateAdmin,
+  getMyProfile,
 };

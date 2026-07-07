@@ -13,6 +13,8 @@ const router = express.Router();
 
 router.get("/", auth(UserRole.ADMIN), UserController.getAllUsers)
 
+router.get("/me", auth(UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT), UserController.getMyProfile);
+
 // admin
 router.post(
   "/create-admin", auth(UserRole.ADMIN),
