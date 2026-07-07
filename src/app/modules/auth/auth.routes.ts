@@ -6,6 +6,8 @@ import type { Request, Response, NextFunction } from "express";
 
 const router = express.Router();
 
+router.get("/me", auth(UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT), AuthController.getMe);
+
 router.post("/login", AuthController.loginUser);
 
 router.post("/refresh-token", AuthController.refreshToken);
