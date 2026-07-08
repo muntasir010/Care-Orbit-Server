@@ -9,6 +9,8 @@ import notFound from "./app/middlewares/notFound";
 import router from "./app/routes";
 import cookieParser from "cookie-parser";
 import { PaymentController } from "./app/modules/payment/payment.controller";
+import cron from "node-cron"
+import { AppointmentService } from "./app/modules/appointment/appointment.service";
 
 const app: Application = express();
 
@@ -18,11 +20,17 @@ app.post(
   PaymentController.handleStripeWebhookEvent,
 );
 
-const port = process.env.PORT;
-
 app.use(cookieParser());
 app.use(express.json());
 app.use(cors());
+
+cron.schedule('* * * * *', () => {
+ try{
+  AppointmentService.cancelUnpaidAppointments()
+ }catch(err){
+  console.log(err)
+ }
+});
 
 app.use("/api/v1", router);
 
