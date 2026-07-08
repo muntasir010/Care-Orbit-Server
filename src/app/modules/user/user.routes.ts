@@ -11,13 +11,18 @@ import { UserRole } from "@prisma/client";
 
 const router = express.Router();
 
-router.get("/", auth(UserRole.ADMIN), UserController.getAllUsers)
+router.get("/", auth(UserRole.ADMIN), UserController.getAllUsers);
 
-router.get("/me", auth(UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT), UserController.getMyProfile);
+router.get(
+  "/me",
+  auth(UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT),
+  UserController.getMyProfile,
+);
 
 // admin
 router.post(
-  "/create-admin", auth(UserRole.ADMIN),
+  "/create-admin",
+  auth(UserRole.ADMIN),
   fileUploader.upload.single("file"),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = UserValidation.createAdminZodSchema.parse(
@@ -29,7 +34,8 @@ router.post(
 
 // doctor
 router.post(
-  "/create-doctor", auth(UserRole.ADMIN),
+  "/create-doctor",
+  auth(UserRole.ADMIN),
   fileUploader.upload.single("file"),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = UserValidation.createDoctorZodSchema.parse(
@@ -51,5 +57,10 @@ router.post(
   },
 );
 
+router.patch(
+  "/:id/status",
+  auth(UserRole.ADMIN),
+  UserController.changeProfileStatus,
+);
 
 export const userRoutes = router;
