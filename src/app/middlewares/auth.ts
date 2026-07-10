@@ -4,7 +4,11 @@ import { jwtHelper } from "../helper/jwtHelper";
 import config from "../config/config";
 
 const auth = (...roles: string[]) => {
-  return async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
+  return async (
+    req: Request & { user?: any },
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const token = req.cookies.accessToken;
       if (!token) {
@@ -12,11 +16,12 @@ const auth = (...roles: string[]) => {
       }
       const verifyUser = jwtHelper.verifyToken(token, config.jwt.access_secret);
       req.user = verifyUser;
-      if(roles.length && !roles.includes(verifyUser.role) ){
-        throw new AppError(401, "You are not authorized")
+      if (roles.length && !roles.includes(verifyUser.role)) {
+        throw new AppError(401, "You are not authorized");
       }
+      next();
     } catch (err) {
-        next(err)
+      next(err);
     }
   };
 };

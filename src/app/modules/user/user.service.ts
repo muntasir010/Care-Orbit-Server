@@ -49,6 +49,7 @@ const CreateAdmin = async (req: Request): Promise<Admin> => {
 
 const CreateDoctor = async (req: Request) => {
   const file = req.file;
+
   if (file) {
     const uploadedProfileImage = await fileUploader.uploadToCloudinary(file);
     if (!uploadedProfileImage?.secure_url) {
@@ -57,21 +58,77 @@ const CreateDoctor = async (req: Request) => {
     req.body.doctor.profilePhoto = uploadedProfileImage?.secure_url;
   }
 
-  const hashedPassword = await bcrypt.hash(
+  const hashedPassword: string = await bcrypt.hash(
     req.body.password,
     Number(config.salt_round),
   );
+
+  const userData = {
+    email: req.body.doctor.email,
+    password: hashedPassword,
+    role: UserRole.DOCTOR,
+  };
+
+  const { specialties, ...doctorData } = req.body.doctor;
+
   const result = await prisma.$transaction(async (tnx) => {
     await tnx.user.create({
-      data: {
-        email: req.body.doctor.email,
-        password: hashedPassword,
-        role: UserRole.DOCTOR,
+      data: userData,
+    });
+
+    const createdDoctorData = await tnx.doctor.create({
+      data: doctorData,
+    });
+
+    if (specialties && Array.isArray(specialties) && specialties.length > 0) {
+      // Verify all specialties exist
+      const existingSpecialties = await tnx.specialties.findMany({
+        where: {
+          id: {
+            in: specialties,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      const existingSpecialtyIds = existingSpecialties.map((s) => s.id);
+      const invalidSpecialties = specialties.filter(
+        (id) => !existingSpecialtyIds.includes(id),
+      );
+
+      if (invalidSpecialties.length > 0) {
+        throw new Error(
+          `Invalid specialty IDs: ${invalidSpecialties.join(", ")}`,
+        );
+      }
+
+      // Create doctor specialties relations
+      const doctorSpecialtiesData = specialties.map((specialtyId) => ({
+        doctorId: createdDoctorData.id,
+        specialtiesId: specialtyId,
+      }));
+
+      await tnx.doctorSpecialties.createMany({
+        data: doctorSpecialtiesData,
+      });
+    }
+
+    const doctorWithSpecialties = await tnx.doctor.findUnique({
+      where: {
+        id: createdDoctorData.id,
+      },
+      include: {
+        doctorSpecialties: {
+          include: {
+            specialties: true,
+          },
+        },
       },
     });
-    return await tnx.doctor.create({
-      data: req.body.doctor,
-    });
+
+    return doctorWithSpecialties!;
   });
   return result;
 };
@@ -112,7 +169,7 @@ const CreatePatient = async (req: Request) => {
 
     return createdPatientData;
   });
-  
+
   return result;
 };
 
