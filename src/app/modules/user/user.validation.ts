@@ -66,25 +66,29 @@ const createDoctorZodSchema = z.object({
 });
 
 const createPatientZodSchema = z.object({
-  password: z.string(),
+  password: z.string({
+    error: "Password is required!",
+  }),
   patient: z.object({
-    email: z.email(),
+    email: z.string({ error: "Email is required!" }).email("Invalid email format!"),
+    
     name: z.string({
-      error: "Name is required!",
+     error: "Name is required!",
     }),
+    
     contactNumber: z
       .string({
         error: "Contact number is required!",
       })
       .optional(),
+      
     address: z
       .string({
-        error: "Address is required",
+        error: "Address is required!",
       })
       .optional(),
   }),
 });
-
 export const UserValidation = {
   createAdminZodSchema,
   createDoctorZodSchema,

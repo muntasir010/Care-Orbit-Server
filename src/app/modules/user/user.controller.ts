@@ -7,20 +7,6 @@ import { userFilterableFields, userOptionAbleFields } from "./user.constants";
 import { UserService } from "./user.service";
 import type { Request, Response } from "express";
 
-const getAllUsers = catchAsync(async (req, res) => {
-  const filters = pick(req.query, userFilterableFields);
-  const options = pick(req.query, userOptionAbleFields);
-
-  const result = await UserService.getAllUsers(filters, options);
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Users retrieved successfully",
-    meta: result.meta,
-    data: result.data,
-  });
-});
-
 const CreateAdmin = catchAsync(async (req, res) => {
   const result = await UserService.CreateAdmin(req);
   sendResponse(res, {
@@ -48,6 +34,21 @@ const CreatePatient = catchAsync(async (req, res) => {
     success: true,
     message: "Patient created successfully",
     data: result,
+  });
+});
+
+
+const getAllUsers = catchAsync(async (req, res) => {
+  const filters = pick(req.query, userFilterableFields);
+  const options = pick(req.query, userOptionAbleFields);
+
+  const result = await UserService.getAllUsers(filters, options);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Users retrieved successfully",
+    meta: result.meta,
+    data: result.data,
   });
 });
 
