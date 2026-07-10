@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get(
     '/',
-    auth(UserRole.ADMIN),
+    auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
     AppointmentController.getAllFromDB
 );
 
@@ -25,7 +25,7 @@ router.post(
 
 router.patch(
   "/status/:id",
-  auth(UserRole.ADMIN, UserRole.DOCTOR),
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR),
   AppointmentController.updateAppointmentStatus,
 );
 

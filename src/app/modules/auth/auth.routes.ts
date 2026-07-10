@@ -14,7 +14,7 @@ router.post("/refresh-token", AuthController.refreshToken);
 
 router.post(
   "/change-password",
-  auth(UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT),
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT),
   AuthController.changePassword,
 );
 
@@ -27,7 +27,7 @@ router.post(
     if (!req.headers.authorization && req.cookies.accessToken) {
       console.log(req.headers.authorization, "from reset password route guard");
       console.log(req.cookies.accessToken, "from reset password route guard");
-      auth(UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT)(req, res, next);
+      auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT)(req, res, next);
     } else {
       //user is resetting password via email link with token
       next();
