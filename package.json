@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "prisma": {
-    "schema": "./prisma/schema"
+    "schema": "./prisma/schema",
+    "seed": "ts-node-dev src/app/helper/seed.ts"
   },
   "scripts": {
     "dev": "bun --watch src/server.ts",

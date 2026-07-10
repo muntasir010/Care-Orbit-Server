@@ -89,6 +89,7 @@ const createPatientZodSchema = z.object({
       .optional(),
   }),
 });
+
 export const UserValidation = {
   createAdminZodSchema,
   createDoctorZodSchema,

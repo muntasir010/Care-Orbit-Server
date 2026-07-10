@@ -28,4 +28,8 @@ export default {
     app_pass: process.env.EMAIL_APP_PASSWORD,
   },
   reset_pass_link: process.env.RESET_PASS_LINK,
+  super_admin: {
+    email: process.env.SUPER_ADMIN_EMAIL,
+    password: process.env.SUPER_ADMIN_PASSWORD,
+  },
 };

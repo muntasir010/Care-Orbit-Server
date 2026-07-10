@@ -22,7 +22,7 @@ router.get(
 // admin
 router.post(
   "/create-admin",
-  
+  auth(UserRole.SUPER_ADMIN),
   fileUploader.upload.single("file"),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = UserValidation.createAdminZodSchema.parse(
