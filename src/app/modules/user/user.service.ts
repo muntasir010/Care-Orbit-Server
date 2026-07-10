@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 import { paginationHelper } from "../../interfaces/paginationHelper";
-import { Prisma, UserRole, UserStatus } from "@prisma/client";
+import { Prisma, UserRole, UserStatus, type Admin } from "@prisma/client";
 import { userSearchableFields } from "./user.constants";
 import AppError from "../../errors/AppError";
 import prisma from "../../shared/prisma";
@@ -66,32 +66,40 @@ const getAllUsers = async (params: any, options: any) => {
   };
 };
 
-const CreateAdmin = async (req: Request) => {
+const CreateAdmin = async (req: Request): Promise<Admin> => {
   const file = req.file;
+
   if (file) {
-    const uploadProfileImage = await fileUploader.uploadToCloudinary(file);
-    if (!uploadProfileImage?.secure_url) {
+    const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
+    if (!uploadToCloudinary?.secure_url) {
       throw new AppError(httpStatus.BAD_REQUEST, "Profile image upload failed");
     }
-    req.body.admin.profilePhoto = uploadProfileImage?.secure_url;
+    req.body.admin.profilePhoto = uploadToCloudinary?.secure_url;
   }
 
-  const hashedPassword = await bcrypt.hash(
+  const hashedPassword: string = await bcrypt.hash(
     req.body.password,
     Number(config.salt_round),
   );
+
+  const userData = {
+    email: req.body.admin.email,
+    password: hashedPassword,
+    role: UserRole.ADMIN,
+  };
+
   const result = await prisma.$transaction(async (tnx) => {
     await tnx.user.create({
-      data: {
-        email: req.body.admin.email,
-        password: hashedPassword,
-        role: UserRole.ADMIN,
-      },
+      data: userData,
     });
-    return await tnx.admin.create({
+
+    const createAdminData = await tnx.admin.create({
       data: req.body.admin,
     });
+
+    return createAdminData;
   });
+
   return result;
 };
 
