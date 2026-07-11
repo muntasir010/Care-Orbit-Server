@@ -44,8 +44,21 @@ const updateIntoDB = catchAsync(async (req, res) => {
     })
 })
 
+const deleteFromDB = catchAsync(async (req, res) => {
+    const { id } = req.params;
+
+    const result = await AdminService.deleteFromDB(id as string);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Admin data deleted!",
+        data: result
+    })
+})
+
 export const AdminController = {
     getAllFromDB,
     getByIdFromDB,
     updateIntoDB,
+    deleteFromDB,
 }
