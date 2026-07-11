@@ -1,31 +1,31 @@
 import express from "express";
-import { userRoutes } from "../modules/user/user.routes";
-import { authRoutes } from "../modules/auth/auth.routes";
-import { schedulesRoutes } from "../modules/schedule/schedule.routes";
 import { DoctorScheduleRoutes } from "../modules/doctorSchedule/doctorSchedule.routes";
 import { SpecialtiesRoutes } from "../modules/specialties/specialties.routes";
 import { DoctorRoutes } from "../modules/doctor/doctor.routes";
 import { PatientRoutes } from "../modules/patients/patients.routes";
 import { AppointmentRoutes } from "../modules/appointment/appointment.routes";
-import { prescriptionRoutes } from "../modules/prescription/prescription.routes";
-import { reviewRoutes } from "../modules/review/review.routes";
-import { metaRoutes } from "../modules/meta/meta.routes";
-import { adminRoutes } from "../modules/admin/admin.routes";
+import { UserRoutes } from "../modules/user/user.routes";
+import { AdminRoutes } from "../modules/admin/admin.routes";
+import { AuthRoutes } from "../modules/auth/auth.routes";
+import { SchedulesRoutes } from "../modules/schedule/schedule.routes";
+import { PrescriptionRoutes } from "../modules/prescription/prescription.routes";
+import { ReviewRoutes } from "../modules/review/review.routes";
+import { MetaRoutes } from "../modules/meta/meta.routes";
 
 const router = express.Router();
 
 const moduleRoutes = [
   {
     path: "/user",
-    route: userRoutes,
+    route: UserRoutes,
   },
   {
     path: "/auth",
-    route: authRoutes,
+    route: AuthRoutes,
   },
   {
     path: "/schedule",
-    route: schedulesRoutes,
+    route: SchedulesRoutes,
   },
   {
     path: "/doctor-schedule",
@@ -37,7 +37,7 @@ const moduleRoutes = [
   },
   {
     path: "/admin",
-    route: adminRoutes,
+    route: AdminRoutes,
   },
   {
     path: "/doctor",
@@ -53,15 +53,15 @@ const moduleRoutes = [
   },
   {
     path: "/prescription",
-    route: prescriptionRoutes,
+    route: PrescriptionRoutes,
   },
   {
     path: "/review",
-    route: reviewRoutes,
+    route: ReviewRoutes,
   },
   {
     path: "/meta",
-    route: metaRoutes,
+    route: MetaRoutes,
   }
 ];
 

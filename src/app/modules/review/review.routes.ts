@@ -7,4 +7,4 @@ const router = express.Router();
 
 router.post("/", auth(UserRole.PATIENT), ReviewController.insertIntoDB);
 
-export const reviewRoutes = router;
+export const ReviewRoutes = router;

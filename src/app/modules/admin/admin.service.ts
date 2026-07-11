@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Admin, Prisma } from "@prisma/client";
 import { paginationHelper, type IPaginationOptions } from "../../interfaces/paginationHelper";
 import prisma from "../../shared/prisma";
 import { adminSearchAbleFields } from "./admin.constants";
@@ -63,6 +63,18 @@ const getAllFromDB = async (params: IAdminFilterRequest, options: IPaginationOpt
     };
 };
 
+const getByIdFromDB = async (id: string): Promise<Admin | null> => {
+    const result = await prisma.admin.findUnique({
+        where: {
+            id,
+            isDeleted: false
+        }
+    })
+
+    return result;
+};
+
 export const AdminService = {
     getAllFromDB,
+    getByIdFromDB,
 }

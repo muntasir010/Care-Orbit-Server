@@ -20,6 +20,19 @@ const getAllFromDB: RequestHandler = catchAsync(async (req, res) => {
     })
 })
 
+const getByIdFromDB = catchAsync(async (req, res) => {
+    const { id } = req.params;
+
+    const result = await AdminService.getByIdFromDB(id as string);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Admin data fetched by id!",
+        data: result
+    });
+})
+
 export const AdminController = {
     getAllFromDB,
+    getByIdFromDB,
 }

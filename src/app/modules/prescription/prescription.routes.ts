@@ -23,4 +23,4 @@ router.post(
   PrescriptionController.insertIntoDB,
 );
 
-export const prescriptionRoutes = router;
+export const PrescriptionRoutes = router;

@@ -36,4 +36,4 @@ router.post(
   AuthController.resetPassword,
 );
 
-export const authRoutes = router;
+export const AuthRoutes = router;

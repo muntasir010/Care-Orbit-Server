@@ -19,4 +19,4 @@ router.delete(
   ScheduleControllers.deleteSchedulesFromDB,
 );
 
-export const schedulesRoutes = router;
+export const SchedulesRoutes = router;
