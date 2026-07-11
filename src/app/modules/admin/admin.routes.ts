@@ -17,4 +17,10 @@ router.get(
   AdminController.getByIdFromDB,
 );
 
+router.patch(
+  "/:id",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  AdminController.updateIntoDB,
+);
+
 export const AdminRoutes = router;
