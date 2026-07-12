@@ -7,18 +7,24 @@ import { DoctorScheduleController } from "./doctorSchedule.controller";
 
 const router = express.Router();
 
-router.post(
-  "/",
-  validateRequest(
-    DoctorScheduleValidation.createDoctorScheduleValidationSchema,
-  ),
-  DoctorScheduleController.insertIntoDB,
+router.get(
+    '/',
+    auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT),
+    DoctorScheduleController.getAllFromDB
 );
 
 router.get(
   "/my-schedule",
   auth(UserRole.DOCTOR),
   DoctorScheduleController.getMySchedule,
+);
+
+router.post(
+  "/",
+  validateRequest(
+    DoctorScheduleValidation.createDoctorScheduleValidationSchema,
+  ),
+  DoctorScheduleController.insertIntoDB,
 );
 
 export const DoctorScheduleRoutes = router;

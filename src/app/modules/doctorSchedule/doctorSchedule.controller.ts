@@ -5,6 +5,7 @@ import catchAsync from "../../shared/catchAsync";
 import type { IAuthUser } from "../../interfaces/common";
 import sendResponse from "../../shared/sendResponse";
 import pick from "../../interfaces/pick";
+import { scheduleFilterableFields } from "./doctorSchedule.constant";
 
 const insertIntoDB = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
@@ -44,7 +45,21 @@ const getMySchedule = catchAsync(
   },
 );
 
+const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
+    const filters = pick(req.query, scheduleFilterableFields);
+    const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder']);
+    const result = await DoctorScheduleService.getAllFromDB(filters, options);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Doctor Schedule retrieval successfully',
+        meta: result.meta,
+        data: result.data,
+    });
+});
+
 export const DoctorScheduleController = {
   insertIntoDB,
   getMySchedule,
+  getAllFromDB,
 };
