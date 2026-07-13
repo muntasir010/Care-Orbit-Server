@@ -37,7 +37,6 @@ const CreatePatient = catchAsync(async (req, res) => {
   });
 });
 
-
 const getAllUsers = catchAsync(async (req, res) => {
   const filters = pick(req.query, userFilterableFields);
   const options = pick(req.query, userOptionAbleFields);
@@ -78,6 +77,20 @@ const changeProfileStatus = catchAsync(async(req, res)=> {
   })
 })
 
+const updateMyProfile = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
+
+    const user = req.user;
+
+    const result = await UserService.updateMyProfile(user as IAuthUser, req);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "My profile updated!",
+        data: result
+    })
+});
+
 export const UserController = {
   getAllUsers,
   CreatePatient,
@@ -85,4 +98,5 @@ export const UserController = {
   CreateAdmin,
   getMyProfile,
   changeProfileStatus,
+  updateMyProfile
 };
