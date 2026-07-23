@@ -1,22 +1,22 @@
-import type { Response } from "express"
+import type { Response } from "express";
 
 const sendResponse = <T>(res: Response, jsonData: {
-    statusCode: number,
-    success: boolean,
-    message: string,
-    meta?: {
-        page: number,
-        limit: number,
-        total: number
-    },
-    data: T | null | undefined
+  statusCode: number;
+  success: boolean;
+  message: string;
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+  } | null;
+  data?: T | null;
 }) => {
-    res.status(jsonData.statusCode).json({
-        success: jsonData.success,
-        message: jsonData.message,
-        meta: jsonData.meta || null || undefined,
-        data: jsonData.data || null || undefined
-    })
-}
+  res.status(jsonData.statusCode).json({
+    success: jsonData.success,
+    message: jsonData.message,
+    meta: jsonData.meta ?? null,
+    data: jsonData.data ?? null,
+  });
+};
 
 export default sendResponse;

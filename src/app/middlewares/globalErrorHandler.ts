@@ -8,48 +8,47 @@ const globalErrorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  let statusCode = err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
-  let message = err.message || "Something went wrong!";
+  let statusCode = err?.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
+  let message = err?.message || "Something went wrong!";
+  let errorSources: any = err?.errors ?? null;
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    if ((err.code = "P2002")) {
-      ((message =
-        "This record already exists. Please try with different data."),
-        (err = err.meta));
+    if (err.code === "P2002") {
+      message = "This record already exists. Please try with different data.";
+      errorSources = err.meta ?? null;
       statusCode = httpStatus.CONFLICT;
-    }
-    if ((err.code = "P1000")) {
-      ((message = "Database connection issue. Please try again later."),
-        (err = err.meta));
+    } else if (err.code === "P1000") {
+      message = "Database connection issue. Please try again later.";
+      errorSources = err.meta ?? null;
       statusCode = httpStatus.BAD_GATEWAY;
-    }
-    if ((err.code = "P2003")) {
-      ((message =
-        "This data is linked with another record and cannot be changed."),
-        (err = err.meta));
+    } else if (err.code === "P2003") {
+      message =
+        "This data is linked with another record and cannot be changed.";
+      errorSources = err.meta ?? null;
       statusCode = httpStatus.BAD_REQUEST;
     }
   } else if (err instanceof Prisma.PrismaClientValidationError) {
     message =
       "The data format is incorrect or some required fields are missing.";
-    err = err.message;
+    errorSources = err.message;
     statusCode = httpStatus.BAD_REQUEST;
   } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
     message = "An unexpected error occurred. Please try again later.";
-    err = err.message;
+    errorSources = err.message;
     statusCode = httpStatus.BAD_REQUEST;
-  }else if(err instanceof Prisma.PrismaClientInitializationError){
-    message = "Could not connect to the database. Please check your internet or server status."
-    err= err.message;
+  } else if (err instanceof Prisma.PrismaClientInitializationError) {
+    message =
+      "Could not connect to the database. Please check your network or server status.";
+    errorSources = err.message;
     statusCode = httpStatus.BAD_REQUEST;
-
   }
 
   return res.status(statusCode).json({
     success: false,
     message,
-    errorSources: err.errors || null,
-    stack: process.env.NODE_ENV === "development" ? err.stack : null,
+    errorSources,
+    stack: process.env.NODE_ENV === "development" ? err?.stack ?? null : null,
   });
 };
+
 export default globalErrorHandler;

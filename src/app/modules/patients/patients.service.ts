@@ -98,7 +98,7 @@ const getByIdFromDB = async (id: string): Promise<Patient | null> => {
       isDeleted: false,
     },
     include: {
-      medicalReport: true,
+      medicalReports: true,
       patientHealthData: true,
     },
   });
@@ -137,7 +137,7 @@ const updateIntoDB = async (user: IAuthUser, payload: any) => {
         id: patientInfo.id,
       },
       include: {
-        medicalReport: true,
+        medicalReports: true,
         patientHealthData: true,
       },
     });

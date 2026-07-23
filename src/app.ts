@@ -29,12 +29,12 @@ app.use(
   })
 );
 
-cron.schedule('* * * * *', () => {
- try{
-  AppointmentService.cancelUnpaidAppointments()
- }catch(err){
-  console.log(err)
- }
+cron.schedule("* * * * *", async () => {
+  try {
+    await AppointmentService.cancelUnpaidAppointments();
+  } catch (err) {
+    console.error("Cron job (cancelUnpaidAppointments) failed:", err);
+  }
 });
 
 app.use("/api/v1", router);
