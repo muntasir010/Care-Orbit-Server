@@ -1,6 +1,6 @@
 ﻿# CareOrbit Server
 
-Backend server for the CareOrbit application — TypeScript + Bun + Express + Prisma (Postgres).
+Backend server for the CareOrbit application — TypeScript + Node.js (npm) + Express + Prisma (Postgres).
 
 ## Features
 - REST API with authentication and role-based users
@@ -11,7 +11,8 @@ Backend server for the CareOrbit application — TypeScript + Bun + Express + Pr
 - Prisma ORM with migrations and seeds
 
 ## Tech stack
-- Runtime: Bun (recommended)
+- Runtime: Node.js (v18+ recommended)
+- Package Manager: npm
 - Framework: Express (TypeScript)
 - ORM: Prisma with Postgres
 - Payments: Stripe
@@ -20,12 +21,12 @@ Backend server for the CareOrbit application — TypeScript + Bun + Express + Pr
 
 ## Quickstart
 1. Clone repository and enter folder:
+   ```bash
    git clone <repo-url>
    cd Care_Orbit_Server
 
-2. Install dependencies (Bun recommended):
-   bun install
-   # or with npm/pnpm if preferred
+2. Install dependencies:
+   - npm install
 
 3. Copy `.env.example` to `.env` and fill required variables (see below).
 
@@ -37,8 +38,7 @@ Backend server for the CareOrbit application — TypeScript + Bun + Express + Pr
    npx prisma db seed
 
 6. Run in development:
-   bun --watch src/server.ts
-   # or npm run dev (script uses Bun in package.json)
+   # or npm run dev
 
 ## Important environment variables
 Set these in `.env` (or your environment):
@@ -87,10 +87,4 @@ Important: Stripe webhook route expects the raw body (configured accordingly in 
 - Ensure `STRIPE_WEBHOOK_SECRET` is set when enabling webhooks and that your webhook endpoint is reachable (use Stripe CLI or a public URL in development).
 - Cloudinary credentials are required for production media uploads.
 
-## Contributing
-- Follow TypeScript strict rules and existing code style.
-- Run Prisma migrations and seeds locally before opening PRs that change models.
-
-## License
-Add your project license here.
-
+### authored by - Naeem Muntasir Asif
