@@ -2,6 +2,8 @@ model Specialties {
     id                String              @id @default(uuid())
     title             String
     icon              String
+    createdAt         DateTime            @default(now())
+    updatedAt         DateTime            @default(now()) @updatedAt
     doctorSpecialties DoctorSpecialties[]
 
     @@map("specialties")
@@ -10,8 +12,12 @@ model Specialties {
 model DoctorSpecialties {
     specialtiesId String
     specialties   Specialties @relation(fields: [specialtiesId], references: [id])
-    doctorId      String
-    doctor        Doctor      @relation(fields: [doctorId], references: [id])
+
+    doctorId String
+    doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 
     @@id([specialtiesId, doctorId])
     @@map("doctor_specialties")

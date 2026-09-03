@@ -19,6 +19,7 @@ const CreateAdmin = catchAsync(async (req, res) => {
 
 const CreateDoctor = catchAsync(async (req, res) => {
   const result = await UserService.CreateDoctor(req);
+  
   sendResponse(res, {
     statusCode: 201,
     success: true,

@@ -11,7 +11,7 @@ router.get("/", DoctorController.getAllFromDB);
 
 router.get("/:id", DoctorController.getByIdFromDB);
 
-router.patch("/", DoctorController.updateIntoDB);
+router.patch("/:id", DoctorController.updateIntoDB);
 
 router.delete("/:id", auth(UserRole.SUPER_ADMIN, UserRole.ADMIN), DoctorController.deleteFromDB);
 

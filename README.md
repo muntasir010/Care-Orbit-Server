@@ -38,7 +38,7 @@ Backend server for the CareOrbit application — TypeScript + Node.js (npm) + Ex
    npx prisma db seed
 
 6. Run in development:
-   # or npm run dev
+   ### npm run dev
 
 ## Important environment variables
 Set these in `.env` (or your environment):
@@ -87,4 +87,4 @@ Important: Stripe webhook route expects the raw body (configured accordingly in 
 - Ensure `STRIPE_WEBHOOK_SECRET` is set when enabling webhooks and that your webhook endpoint is reachable (use Stripe CLI or a public URL in development).
 - Cloudinary credentials are required for production media uploads.
 
-### authored by - Naeem Muntasir Asif
+###### authored by - Naeem Muntasir Asif
