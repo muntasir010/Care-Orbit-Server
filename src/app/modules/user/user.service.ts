@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 import { paginationHelper } from "../../interfaces/paginationHelper";
-import { Prisma, UserRole, UserStatus, type Admin } from "@prisma/client";
+import { Doctor, Prisma, UserRole, UserStatus, type Admin } from "@prisma/client";
 import { userSearchableFields } from "./user.constants";
 import AppError from "../../errors/AppError";
 import prisma from "../../shared/prisma";
@@ -47,15 +47,15 @@ const CreateAdmin = async (req: Request): Promise<Admin> => {
   return result;
 };
 
-const CreateDoctor = async (req: Request) => {
+const CreateDoctor = async (req: Request): Promise<Doctor> => {
   const file = req.file;
 
   if (file) {
-    const uploadedProfileImage = await fileUploader.uploadToCloudinary(file);
-    if (!uploadedProfileImage?.secure_url) {
+    const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
+    if (!uploadToCloudinary?.secure_url) {
       throw new AppError(httpStatus.BAD_REQUEST, "Profile image upload failed");
     }
-    req.body.doctor.profilePhoto = uploadedProfileImage?.secure_url;
+    req.body.doctor.profilePhoto = uploadToCloudinary?.secure_url;
   }
 
   const hashedPassword: string = await bcrypt.hash(
@@ -72,14 +72,17 @@ const CreateDoctor = async (req: Request) => {
   const { specialties, ...doctorData } = req.body.doctor;
 
   const result = await prisma.$transaction(async (tnx) => {
+    // Step 1: Create user
     await tnx.user.create({
       data: userData,
     });
 
+    // Step 2: Create doctor
     const createdDoctorData = await tnx.doctor.create({
       data: doctorData,
     });
 
+    // Step 3: Create doctor specialties if provided
     if (specialties && Array.isArray(specialties) && specialties.length > 0) {
       // Verify all specialties exist
       const existingSpecialties = await tnx.specialties.findMany({
@@ -115,6 +118,7 @@ const CreateDoctor = async (req: Request) => {
       });
     }
 
+    // Step 4: Return doctor with specialties
     const doctorWithSpecialties = await tnx.doctor.findUnique({
       where: {
         id: createdDoctorData.id,
@@ -137,11 +141,11 @@ const CreatePatient = async (req: Request) => {
   const file = req.file;
 
   if (file) {
-    const uploadedProfileImage = await fileUploader.uploadToCloudinary(file);
-    if (!uploadedProfileImage?.secure_url) {
+    const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
+    if (!uploadToCloudinary?.secure_url) {
       throw new AppError(httpStatus.BAD_REQUEST, "Profile image upload failed");
     }
-    req.body.patient.profilePhoto = uploadedProfileImage?.secure_url;
+    req.body.patient.profilePhoto = uploadToCloudinary?.secure_url;
   }
 
   const hashedPassword: string = await bcrypt.hash(

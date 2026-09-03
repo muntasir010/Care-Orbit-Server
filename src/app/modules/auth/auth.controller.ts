@@ -197,17 +197,20 @@ const resetPassword = catchAsync(
   },
 );
 
-const getMe = catchAsync(async (req, res) => {
-  const userSession = req.cookies;
-  const result = await AuthService.getMe(userSession);
+const getMe = catchAsync(
+  async (req: Request & { user?: any }, res: Response) => {
+    const user = req.cookies;
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "User retrieved successfully",
-    data: result,
-  });
-});
+    const result = await AuthService.getMe(user);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User retrieved successfully",
+      data: result,
+    });
+  },
+);
 
 export const AuthController = {
   loginUser,
