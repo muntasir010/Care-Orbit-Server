@@ -7,7 +7,7 @@ import type { Prisma } from "@prisma/client";
 import type { IAuthUser } from "../../interfaces/common";
 import prisma from "../../shared/prisma";
 
-const insertIntoDB = async (payload: any, body: any) => {
+const insertIntoDB = async (payload: any) => {
   const { startDate, endDate, startTime, endTime } = payload;
   const intervalTime = 30;
   const schedules = [];
@@ -16,28 +16,31 @@ const insertIntoDB = async (payload: any, body: any) => {
   const lastDate = new Date(endDate);
 
   while (currentDate <= lastDate) {
+    // Start DateTime
     const startDateTime = new Date(
       addMinutes(
         addHours(
           `${format(currentDate, "yyyy-MM-dd")}`,
-          Number(startTime.split(":", [0])),
+          Number(startTime.split(":")[0]),
         ),
-        Number(startTime.split(":", [1])),
+        Number(startTime.split(":")[1]),
       ),
     );
+
+    // End DateTime
     const endDateTime = new Date(
       addMinutes(
         addHours(
           `${format(currentDate, "yyyy-MM-dd")}`,
-          Number(endTime.split(":", [0])),
+          Number(endTime.split(":")[0]),
         ),
-        Number(endTime.split(":", [1])),
+        Number(endTime.split(":")[1]),
       ),
     );
 
     while (startDateTime < endDateTime) {
-      const slotStartDateTime = startDateTime;
-      const slotEndDateTime = addMinutes(startDateTime, intervalTime);
+      const slotStartDateTime = new Date(startDateTime);
+      const slotEndDateTime = addMinutes(slotStartDateTime, intervalTime);
 
       const scheduleData = {
         startDateTime: slotStartDateTime,
@@ -57,10 +60,11 @@ const insertIntoDB = async (payload: any, body: any) => {
         });
         schedules.push(result);
       }
-      slotStartDateTime.setMinutes(
-        slotStartDateTime.getMinutes() + intervalTime,
-      );
+
+      // Increment start time by interval
+      startDateTime.setMinutes(startDateTime.getMinutes() + intervalTime);
     }
+
     currentDate.setDate(currentDate.getDate() + 1);
   }
 

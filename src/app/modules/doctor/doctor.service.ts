@@ -145,10 +145,10 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
     },
   });
 
-  await prisma.$transaction(async (tnx) => {
+  await prisma.$transaction(async (transactionClient) => {
     // Step 1: Update doctor basic data
     if (Object.keys(doctorData).length > 0) {
-      await tnx.doctor.update({
+      await transactionClient.doctor.update({
         where: {
           id,
         },
@@ -162,29 +162,31 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
       Array.isArray(removeSpecialties) &&
       removeSpecialties.length > 0
     ) {
-      const existingDoctorSpecialties = await tnx.doctorSpecialties.findMany({
-        where: {
-          doctorId: doctorInfo.id,
-          specialtiesId: {
-            in: removeSpecialties,
+      // Validate that specialties to remove exist for this doctor
+      const existingDoctorSpecialties =
+        await transactionClient.doctorSpecialties.findMany({
+          where: {
+            doctorId: doctorInfo.id,
+            specialtiesId: {
+              in: removeSpecialties,
+            },
           },
-        },
-      });
+        });
 
       if (existingDoctorSpecialties.length !== removeSpecialties.length) {
         const foundIds = existingDoctorSpecialties.map(
-          (ds) => ds.specialtiesId,
+          (ds) => ds.specialtiesId
         );
         const notFound = removeSpecialties.filter(
-          (id) => !foundIds.includes(id),
+          (id) => !foundIds.includes(id)
         );
         throw new Error(
-          `Cannot remove non-existent specialties: ${notFound.join(", ")}`,
+          `Cannot remove non-existent specialties: ${notFound.join(", ")}`
         );
       }
 
       // Delete the specialties
-      await tnx.doctorSpecialties.deleteMany({
+      await transactionClient.doctorSpecialties.deleteMany({
         where: {
           doctorId: doctorInfo.id,
           specialtiesId: {
@@ -197,7 +199,7 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
     // Step 3: Add new specialties if provided
     if (specialties && Array.isArray(specialties) && specialties.length > 0) {
       // Verify all specialties exist in Specialties table
-      const existingSpecialties = await tnx.specialties.findMany({
+      const existingSpecialties = await transactionClient.specialties.findMany({
         where: {
           id: {
             in: specialties,
@@ -210,33 +212,34 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
 
       const existingSpecialtyIds = existingSpecialties.map((s) => s.id);
       const invalidSpecialties = specialties.filter(
-        (id) => !existingSpecialtyIds.includes(id),
+        (id) => !existingSpecialtyIds.includes(id)
       );
 
       if (invalidSpecialties.length > 0) {
         throw new Error(
-          `Invalid specialty IDs: ${invalidSpecialties.join(", ")}`,
+          `Invalid specialty IDs: ${invalidSpecialties.join(", ")}`
         );
       }
 
       // Check for duplicates - don't add specialties that already exist
-      const currentDoctorSpecialties = await tnx.doctorSpecialties.findMany({
-        where: {
-          doctorId: doctorInfo.id,
-          specialtiesId: {
-            in: specialties,
+      const currentDoctorSpecialties =
+        await transactionClient.doctorSpecialties.findMany({
+          where: {
+            doctorId: doctorInfo.id,
+            specialtiesId: {
+              in: specialties,
+            },
           },
-        },
-        select: {
-          specialtiesId: true,
-        },
-      });
+          select: {
+            specialtiesId: true,
+          },
+        });
 
       const currentSpecialtyIds = currentDoctorSpecialties.map(
-        (ds) => ds.specialtiesId,
+        (ds) => ds.specialtiesId
       );
       const newSpecialties = specialties.filter(
-        (id) => !currentSpecialtyIds.includes(id),
+        (id) => !currentSpecialtyIds.includes(id)
       );
 
       // Only create new specialties that don't already exist
@@ -246,7 +249,7 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
           specialtiesId: specialtyId,
         }));
 
-        await tnx.doctorSpecialties.createMany({
+        await transactionClient.doctorSpecialties.createMany({
           data: doctorSpecialtiesData,
         });
       }
@@ -268,6 +271,7 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
   });
   return result;
 };
+
 
 const deleteFromDB = async (id: string): Promise<Doctor> => {
   return await prisma.$transaction(async (transactionClient) => {

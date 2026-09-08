@@ -8,8 +8,7 @@ import sendResponse from "../../shared/sendResponse";
 
 const insertIntoDB = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
-    const user = req.user;
-    const result = await ScheduleService.insertIntoDB(user, req.body);
+    const result = await ScheduleService.insertIntoDB(req.body);
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
