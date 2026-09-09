@@ -4,7 +4,13 @@ import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helper/fileUploader";
 import config from "../../config/config";
 import { paginationHelper } from "../../interfaces/paginationHelper";
-import { Doctor, Prisma, UserRole, UserStatus, type Admin } from "@prisma/client";
+import {
+  Doctor,
+  Prisma,
+  UserRole,
+  UserStatus,
+  type Admin,
+} from "@prisma/client";
 import { userSearchableFields } from "./user.constants";
 import AppError from "../../errors/AppError";
 import prisma from "../../shared/prisma";
@@ -248,7 +254,7 @@ const getMyProfile = async (user: IAuthUser) => {
     },
   });
 
-  let profileData;
+  let profileData: any = null;
 
   if (userInfo.role === UserRole.PATIENT) {
     profileData = await prisma.patient.findUnique({
@@ -256,23 +262,37 @@ const getMyProfile = async (user: IAuthUser) => {
         email: userInfo.email,
       },
     });
+    return {
+      ...userInfo,
+      ...profileData,
+      patient: profileData,
+    };
   } else if (userInfo.role === UserRole.DOCTOR) {
     profileData = await prisma.doctor.findUnique({
       where: {
         email: userInfo.email,
       },
     });
+    return {
+      ...userInfo,
+      ...profileData,
+      doctor: profileData,
+    };
   } else if (userInfo.role === UserRole.ADMIN) {
     profileData = await prisma.admin.findUnique({
       where: {
         email: userInfo.email,
       },
     });
+    return {
+      ...userInfo,
+      ...profileData,
+      admin: profileData,
+    };
   }
 
   return {
     ...userInfo,
-    ...profileData,
   };
 };
 
@@ -297,44 +317,50 @@ const changeProfileStatus = async (
 };
 
 const updateMyProfile = async (user: IAuthUser, req: Request) => {
-    const userInfo = await prisma.user.findUniqueOrThrow({
-        where: {
-            email: user?.email,
-            status: UserStatus.ACTIVE
-        }
+  const userInfo = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: user?.email,
+      status: UserStatus.ACTIVE,
+    },
+  });
+  const file = req.file;
+  if (file) {
+    const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
+    req.body.profilePhoto = uploadToCloudinary?.secure_url;
+  }
+  let profileInfo;
+  if (userInfo.role === UserRole.ADMIN) {
+    profileInfo = await prisma.admin.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: req.body,
     });
-    const file = req.file;
-    if (file) {
-        const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
-        req.body.profilePhoto = uploadToCloudinary?.secure_url;
-    }
-    let profileInfo;
-    if (userInfo.role === UserRole.ADMIN) {
-        profileInfo = await prisma.admin.update({
-            where: {
-                email: userInfo.email
-            },
-            data: req.body
-        })
-    }
-    else if (userInfo.role === UserRole.DOCTOR) {
-        profileInfo = await prisma.doctor.update({
-            where: {
-                email: userInfo.email
-            },
-            data: req.body
-        })
-    }
-    else if (userInfo.role === UserRole.PATIENT) {
-        profileInfo = await prisma.patient.update({
-            where: {
-                email: userInfo.email
-            },
-            data: req.body
-        })
-    }
-    return { ...profileInfo };
-}
+  } else if (userInfo.role === UserRole.DOCTOR) {
+    const { experience, appointmentFee, ...doctorData } = req.body;
+    profileInfo = await prisma.doctor.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: {
+        ...doctorData,
+        ...(experience !== undefined && { experience: Number(experience) }),
+        ...(appointmentFee !== undefined && {
+          appointmentFee: Number(appointmentFee),
+        }),
+      },
+    });
+  } else if (userInfo.role === UserRole.PATIENT) {
+    // const { contactNumber, ...patientUpdateData } = req.body;
+    profileInfo = await prisma.patient.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: req.body,
+    });
+  }
+  return { ...profileInfo };
+};
 
 export const UserService = {
   getAllUsers,
@@ -343,5 +369,5 @@ export const UserService = {
   CreateAdmin,
   getMyProfile,
   changeProfileStatus,
-  updateMyProfile
+  updateMyProfile,
 };
