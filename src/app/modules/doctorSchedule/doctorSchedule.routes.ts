@@ -20,7 +20,7 @@ router.get(
 );
 
 router.post(
-  "/",
+  "/", auth(UserRole.DOCTOR),
   validateRequest(
     DoctorScheduleValidation.createDoctorScheduleValidationSchema,
   ),
