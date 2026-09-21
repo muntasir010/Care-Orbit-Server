@@ -40,6 +40,17 @@ const schedulesForDoctor = catchAsync(async (req: Request & {user?: IAuthUser}, 
   });
 });
 
+const getByIdFromDB = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await ScheduleService.getByIdFromDB(id as string);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Schedule retrieval successfully',
+        data: result,
+    });
+});
+
 const deleteSchedulesFromDB = catchAsync(async (req, res) => {
   const result = await ScheduleService.deleteSchedulesFromDB(
     req.params.id as string,
@@ -56,5 +67,6 @@ const deleteSchedulesFromDB = catchAsync(async (req, res) => {
 export const ScheduleControllers = {
   insertIntoDB,
   schedulesForDoctor,
+  getByIdFromDB,
   deleteSchedulesFromDB
 };

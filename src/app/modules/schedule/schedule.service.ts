@@ -3,7 +3,7 @@ import {
   paginationHelper,
   type IOptions,
 } from "../../interfaces/paginationHelper";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Schedule } from "@prisma/client";
 import type { IAuthUser } from "../../interfaces/common";
 import prisma from "../../shared/prisma";
 
@@ -144,6 +144,16 @@ const schedulesForDoctor = async ( user: IAuthUser, filters: any, options: IOpti
   }
 };
 
+const getByIdFromDB = async (id: string): Promise<Schedule | null> => {
+    const result = await prisma.schedule.findUnique({
+        where: {
+            id,
+        },
+    });
+
+    return result;
+};
+
 const deleteSchedulesFromDB = async (id: string)=>{
   return await prisma.schedule.delete({
     where: {
@@ -155,5 +165,6 @@ const deleteSchedulesFromDB = async (id: string)=>{
 export const ScheduleService = {
   insertIntoDB,
   schedulesForDoctor,
+  getByIdFromDB,
   deleteSchedulesFromDB,
 };

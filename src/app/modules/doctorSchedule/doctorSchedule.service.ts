@@ -6,9 +6,7 @@ import prisma from "../../shared/prisma";
 import type { IDoctorScheduleFilterRequest } from "./doctorSchedule.interface";
 import AppError from "../../errors/AppError";
 
-const insertIntoDB = async (user: any, payload: {
-    scheduleIds: string[]
-}) => {
+const insertIntoDB = async (user: any, payload: { scheduleIds: string[]}) => {
     const doctorData = await prisma.doctor.findUniqueOrThrow({
         where: {
             email: user?.email
