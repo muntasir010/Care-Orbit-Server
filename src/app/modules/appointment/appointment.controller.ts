@@ -80,9 +80,22 @@ const updateAppointmentStatus = catchAsync(
   },
 );
 
+const createAppointmentWithPayLater = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const user = req.user;
+    const result = await AppointmentService.createAppointmentWithPayLater(user as IAuthUser, req.body);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Appointment booked successfully! You can pay later.",
+        data: result
+    })
+});
+
 export const AppointmentController = {
   createAppointment,
   getMyAppointment,
   getAllFromDB,
   updateAppointmentStatus,
+  createAppointmentWithPayLater,
 };

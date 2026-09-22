@@ -355,10 +355,78 @@ const cancelUnpaidAppointments = async () => {
   });
 };
 
+const createAppointmentWithPayLater = async (user: IAuthUser, payload: any) => {
+    const patientData = await prisma.patient.findUniqueOrThrow({
+        where: {
+            email: user?.email
+        }
+    });
+
+    const doctorData = await prisma.doctor.findUniqueOrThrow({
+        where: {
+            id: payload.doctorId,
+            isDeleted: false
+        }
+    });
+
+    await prisma.doctorSchedule.findFirstOrThrow({
+        where: {
+            doctorId: doctorData.id,
+            scheduleId: payload.scheduleId,
+            isBooked: false
+        }
+    });
+
+    const videoCallingId = uuidV4();
+
+    const result = await prisma.$transaction(async (tnx) => {
+        const appointmentData = await tnx.appointment.create({
+            data: {
+                patientId: patientData.id,
+                doctorId: doctorData.id,
+                scheduleId: payload.scheduleId,
+                videoCallingId
+            },
+            include: {
+                patient: true,
+                doctor: true,
+                schedule: true
+            }
+        })
+
+        await tnx.doctorSchedule.update({
+            where: {
+                doctorId_scheduleId: {
+                    doctorId: doctorData.id,
+                    scheduleId: payload.scheduleId
+                }
+            },
+            data: {
+                isBooked: true
+            }
+        })
+
+        const transactionId = uuidV4();
+
+        await tnx.payment.create({
+            data: {
+                appointmentId: appointmentData.id,
+                amount: doctorData.appointmentFee,
+                transactionId
+            }
+        })
+
+        return appointmentData;
+    })
+
+    return result;
+};
+
 export const AppointmentService = {
   createAppointment,
   getMyAppointment,
   updateAppointmentStatus,
   getAllFromDB,
   cancelUnpaidAppointments,
+  createAppointmentWithPayLater,
 };
