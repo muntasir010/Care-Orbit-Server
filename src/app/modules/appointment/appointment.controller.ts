@@ -47,16 +47,16 @@ const getMyAppointment = catchAsync(
 );
 
 const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
-    const filters = pick(req.query, appointmentFilterableFields)
-    const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder']);
-    const result = await AppointmentService.getAllFromDB(filters, options);
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Appointment retrieval successfully',
-        meta: result.meta,
-        data: result.data,
-    });
+  const filters = pick(req.query, appointmentFilterableFields);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+  const result = await AppointmentService.getAllFromDB(filters, options);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Appointment retrieval successfully",
+    meta: result.meta,
+    data: result.data,
+  });
 });
 
 const updateAppointmentStatus = catchAsync(
@@ -80,17 +80,41 @@ const updateAppointmentStatus = catchAsync(
   },
 );
 
-const createAppointmentWithPayLater = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
+const createAppointmentWithPayLater = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
     const user = req.user;
-    const result = await AppointmentService.createAppointmentWithPayLater(user as IAuthUser, req.body);
+    const result = await AppointmentService.createAppointmentWithPayLater(
+      user as IAuthUser,
+      req.body,
+    );
 
     sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Appointment booked successfully! You can pay later.",
-        data: result
-    })
-});
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Appointment booked successfully! You can pay later.",
+      data: result,
+    });
+  },
+);
+
+const initiatePayment = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const user = req.user;
+    const { id } = req.params;
+
+    const result = await AppointmentService.initiatePaymentForAppointment(
+      id as string,
+      user as IAuthUser,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Payment session created successfully",
+      data: result,
+    });
+  },
+);
 
 export const AppointmentController = {
   createAppointment,
@@ -98,4 +122,5 @@ export const AppointmentController = {
   getAllFromDB,
   updateAppointmentStatus,
   createAppointmentWithPayLater,
+  initiatePayment,
 };
