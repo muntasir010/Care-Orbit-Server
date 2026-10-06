@@ -20,7 +20,7 @@ const createAppointment = async (
   user: IAuthUser,
   payload: { doctorId: string; scheduleId: string },
 ) => {
-  const patientData = await prisma.user.findUniqueOrThrow({
+  const patientData = await prisma.patient.findUniqueOrThrow({
     where: {
       email: user?.email,
     },
@@ -33,38 +33,57 @@ const createAppointment = async (
     },
   });
 
-  await prisma.doctorSchedule.findFirstOrThrow({
-    where: {
-      doctorId: doctorData.id,
-      scheduleId: payload.scheduleId,
-      isBooked: false,
-    },
-  });
-
   const videoCallingId = uuidV4();
 
   const result = await prisma.$transaction(async (tnx) => {
+    // 1. Check schedule inside transaction
+    const doctorSchedule = await tnx.doctorSchedule.findFirst({
+      where: {
+        doctorId: doctorData.id,
+        scheduleId: payload.scheduleId,
+        isBooked: false,
+      },
+    });
+
+    if (!doctorSchedule) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "This appointment slot is already booked or no longer available.",
+      );
+    }
+
+    // 2. Create appointment
     const appointmentData = await tnx.appointment.create({
       data: {
         patientId: patientData.id,
         doctorId: doctorData.id,
         scheduleId: payload.scheduleId,
         videoCallingId,
+        paymentStatus: PaymentStatus.UNPAID,
       },
     });
 
-    await tnx.doctorSchedule.update({
+    // 3. Mark schedule as booked
+    const updatedSchedule = await tnx.doctorSchedule.updateMany({
       where: {
-        doctorId_scheduleId: {
-          doctorId: payload.doctorId,
-          scheduleId: payload.scheduleId,
-        },
+        doctorId: doctorData.id,
+        scheduleId: payload.scheduleId,
+        isBooked: false,
       },
       data: {
         isBooked: true,
       },
     });
 
+    // Important: if another request booked it first
+    if (updatedSchedule.count !== 1) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "This appointment slot has just been booked by another patient.",
+      );
+    }
+
+    // 4. Create payment
     const transactionId = uuidV4();
 
     const paymentData = await tnx.payment.create({
@@ -72,17 +91,25 @@ const createAppointment = async (
         appointmentId: appointmentData.id,
         amount: doctorData.appointmentFee,
         transactionId,
+        status: PaymentStatus.UNPAID,
       },
     });
 
+    // 5. Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
+      mode: "payment",
+
+      customer_email: user?.email,
+
       line_items: [
         {
           price_data: {
             currency: "bdt",
-            product_data: { name: `Appointment with Dr. ${doctorData.name}` },
-            unit_amount: doctorData.appointmentFee * 100, // Convert to cents
+            product_data: {
+              name: `Appointment with Dr. ${doctorData.name}`,
+            },
+            unit_amount: doctorData.appointmentFee * 100,
           },
           quantity: 1,
         },
@@ -93,16 +120,24 @@ const createAppointment = async (
         paymentId: paymentData.id,
       },
 
-      success_url: `https://web.programming-hero.com/`,
-      cancel_url: `https://web.programming-hero.com/success`,
+      success_url: `${
+        process.env.FRONTEND_URL || "http://localhost:3000"
+      }/payment/success`,
+
+      cancel_url: `${
+        process.env.FRONTEND_URL || "http://localhost:3000"
+      }/dashboard/my-appointments`,
     });
-    console.log(session);
-    return { paymentUrl: session.url };
+
+    return {
+      appointmentId: appointmentData.id,
+      paymentId: paymentData.id,
+      paymentUrl: session.url,
+    };
   });
 
   return result;
 };
-
 const getMyAppointment = async (
   user: IAuthUser,
   filters: any,

@@ -10,38 +10,45 @@ const handleWebhookEvent = async (event: Stripe.Event) => {
       const appointmentId = session.metadata?.appointmentId;
       const paymentId = session.metadata?.paymentId;
 
-      await prisma.appointment.update({
-        where: { id: appointmentId },
-        data: {
-          paymentStatus:
-            session.payment_status === "paid"
+      if (!appointmentId || !paymentId) {
+        throw new Error(
+          "Missing appointmentId or paymentId in Stripe session metadata",
+        );
+      }
+
+      const isPaid = session.payment_status === "paid";
+
+      await prisma.$transaction(async (tx) => {
+        await tx.appointment.update({
+          where: {
+            id: appointmentId,
+          },
+          data: {
+            paymentStatus: isPaid
               ? PaymentStatus.PAID
               : PaymentStatus.UNPAID,
-        },
-      });
+          },
+        });
 
-      await prisma.payment.update({
-        where: { id: paymentId },
-        data: {
-          status:
-            session.payment_status === "paid"
+        await tx.payment.update({
+          where: {
+            id: paymentId,
+          },
+          data: {
+            status: isPaid
               ? PaymentStatus.PAID
               : PaymentStatus.UNPAID,
-          paymentGatewayData: JSON.parse(JSON.stringify(session)),
-        },
+            paymentGatewayData: JSON.parse(JSON.stringify(session)),
+          },
+        });
       });
 
-      console.log("Payment successfully");
-      console.log("Appointment ID:", appointmentId);
-      console.log("Payment ID:", paymentId);
       break;
     }
 
     default:
-      console.log(`Unhandled event type ${event.type}`);
   }
 };
-
 export const PaymentService = {
   handleWebhookEvent,
 };

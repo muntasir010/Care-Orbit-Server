@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+   "stripe:webhook": "stripe listen --events checkout.session.completed --forward-to localhost:5000/api/v1/payment/webhook"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
