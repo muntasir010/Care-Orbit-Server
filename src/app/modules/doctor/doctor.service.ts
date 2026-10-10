@@ -175,13 +175,13 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
 
       if (existingDoctorSpecialties.length !== removeSpecialties.length) {
         const foundIds = existingDoctorSpecialties.map(
-          (ds) => ds.specialtiesId
+          (ds) => ds.specialtiesId,
         );
         const notFound = removeSpecialties.filter(
-          (id) => !foundIds.includes(id)
+          (id) => !foundIds.includes(id),
         );
         throw new Error(
-          `Cannot remove non-existent specialties: ${notFound.join(", ")}`
+          `Cannot remove non-existent specialties: ${notFound.join(", ")}`,
         );
       }
 
@@ -212,12 +212,12 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
 
       const existingSpecialtyIds = existingSpecialties.map((s) => s.id);
       const invalidSpecialties = specialties.filter(
-        (id) => !existingSpecialtyIds.includes(id)
+        (id) => !existingSpecialtyIds.includes(id),
       );
 
       if (invalidSpecialties.length > 0) {
         throw new Error(
-          `Invalid specialty IDs: ${invalidSpecialties.join(", ")}`
+          `Invalid specialty IDs: ${invalidSpecialties.join(", ")}`,
         );
       }
 
@@ -236,10 +236,10 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
         });
 
       const currentSpecialtyIds = currentDoctorSpecialties.map(
-        (ds) => ds.specialtiesId
+        (ds) => ds.specialtiesId,
       );
       const newSpecialties = specialties.filter(
-        (id) => !currentSpecialtyIds.includes(id)
+        (id) => !currentSpecialtyIds.includes(id),
       );
 
       // Only create new specialties that don't already exist
@@ -271,7 +271,6 @@ const updateIntoDB = async (id: string, payload: IDoctorUpdateInput) => {
   });
   return result;
 };
-
 
 const deleteFromDB = async (id: string): Promise<Doctor> => {
   return await prisma.$transaction(async (transactionClient) => {
@@ -340,12 +339,11 @@ const getAISuggestions = async (payload: { symptom: string }) => {
   Return your response in JSON format with full individual doctor data.`;
 
   const completion = await openai.chat.completions.create({
-    model: "tencent/hy3-preview:free",
+    model: "openrouter/free",
     messages: [
       {
         role: "system",
-        content:
-          "You are a helpful AI medical assistant that provides doctor suggestions.",
+        content: `Analyze the patient's symptoms and identify doctors whose specialties are relevant to those symptoms.`,
       },
       {
         role: "user",
