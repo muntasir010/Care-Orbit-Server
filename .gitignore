@@ -36,3 +36,12 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 /src/generated/prisma
 
 /src/generated/prisma
+
+# Keep environment variables out of version control
+.env
+
+/generated/prisma
+
+.vercel
+
+render.yaml
