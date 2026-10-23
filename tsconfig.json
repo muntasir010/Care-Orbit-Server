@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "noEmit": true,
+    "noEmit": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true
   },
