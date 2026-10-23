@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
-#exit on error
-
 set -o errexit
 
-npm install
+# Install dependencies required for TypeScript compilation
+npm install --include=dev
+
+# Compile TypeScript
 npm run build
-npx prisma generate
-npx prisma migrate deploy
+
+# Generate Prisma Client
+npx prisma generate --schema=./prisma/schema
+
+# Apply database migrations
+npx prisma migrate deploy --schema=./prisma/schema
