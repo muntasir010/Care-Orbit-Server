@@ -11,6 +11,7 @@ import cookieParser from "cookie-parser";
 import { PaymentController } from "./app/modules/payment/payment.controller";
 import cron from "node-cron"
 import { AppointmentService } from "./app/modules/appointment/appointment.service";
+import config from "./app/config/config";
 
 const app: Application = express();
 
@@ -24,7 +25,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:3000", config.frontend_url as string],
     credentials: true,
   })
 );

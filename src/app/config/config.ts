@@ -32,4 +32,5 @@ export default {
     email: process.env.SUPER_ADMIN_EMAIL,
     password: process.env.SUPER_ADMIN_PASSWORD,
   },
+  frontend_url: process.env.FRONTEND_URL,
 };
