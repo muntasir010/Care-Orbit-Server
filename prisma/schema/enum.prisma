@@ -43,3 +43,34 @@ enum PaymentStatus {
     PAID
     UNPAID
 }
+
+enum DosageForm {
+  TABLET
+  CAPSULE
+  SYRUP
+  INJECTION
+  CREAM
+  DROPS
+  INHALER
+  OTHER
+}
+
+enum MedicineOrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum MedicinePaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+enum PrescriptionUploadStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
