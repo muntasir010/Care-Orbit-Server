@@ -11,6 +11,7 @@ import { SchedulesRoutes } from "../modules/schedule/schedule.routes";
 import { PrescriptionRoutes } from "../modules/prescription/prescription.routes";
 import { ReviewRoutes } from "../modules/review/review.routes";
 import { MetaRoutes } from "../modules/meta/meta.routes";
+import { MedicineRoutes } from "../modules/medicine/medicine.routes";
 
 const router = express.Router();
 
@@ -62,7 +63,11 @@ const moduleRoutes = [
   {
     path: "/meta",
     route: MetaRoutes,
-  }
+  },
+  {
+    path: "/medicine",
+    route: MedicineRoutes,
+  },
 ];
 
 moduleRoutes.forEach((module) => {
