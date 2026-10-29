@@ -67,9 +67,32 @@ const getById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
+
+  if (req.file) {
+    const uploadedImage = await fileUploader.uploadToCloudinary(req.file);
+
+    payload.image = uploadedImage.secure_url;
+  }
+
+  const result = await MedicineService.updateIntoDB(
+    req.params.id as string,
+    payload,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Medicine updated successfully",
+    data: result,
+  });
+});
+
 export const MedicineController = {
   create,
   getAllFromDB,
   getCategories,
   getById,
+  updateIntoDB,
 };

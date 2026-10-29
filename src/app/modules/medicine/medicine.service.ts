@@ -13,6 +13,10 @@ type CreateMedicinePayload = z.infer<
   typeof MedicineValidation.createMedicineSchema
 >;
 
+type UpdateMedicinePayload = z.infer<
+  typeof MedicineValidation.updateMedicineSchema
+>;
+
 const createIntoDB = async (payload: CreateMedicinePayload) => {
   const { category, form, ...medicineData } = payload;
 
@@ -162,9 +166,39 @@ const getByIdFromDB = async (id: string) => {
   return medicine;
 };
 
+const updateIntoDB = async (id: string, payload: UpdateMedicinePayload) => {
+  await getByIdFromDB(id);
+
+  const { category, form, ...medicineData } = payload;
+
+  const data: Prisma.MedicineUpdateInput = {
+    ...medicineData,
+
+    ...(form !== undefined && {
+      dosageForm: form,
+    }),
+
+    ...(category !== undefined && {
+      category: {
+        connectOrCreate: {
+          where: { name: category },
+          create: { name: category },
+        },
+      },
+    }),
+  };
+
+  return prisma.medicine.update({
+    where: { id },
+    data,
+    include: { category: true },
+  });
+};
+
 export const MedicineService = {
   createIntoDB,
   getAllFromDB,
   getCategories,
   getByIdFromDB,
+  updateIntoDB,
 };

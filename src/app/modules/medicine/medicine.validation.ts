@@ -17,6 +17,9 @@ const createMedicineSchema = z.object({
   requiresPrescription: z.boolean().default(false),
 });
 
+const updateMedicineSchema = createMedicineSchema.partial();
+
 export const MedicineValidation = {
   createMedicineSchema,
+  updateMedicineSchema,
 };

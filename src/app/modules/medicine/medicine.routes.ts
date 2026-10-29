@@ -20,4 +20,12 @@ router.post(
   MedicineController.create,
 );
 
+router.patch(
+  "/:id",
+  auth(UserRole.ADMIN),
+  fileUploader.upload.single("file"),
+  validateBody(MedicineValidation.updateMedicineSchema),
+  MedicineController.updateIntoDB,
+);
+
 export const MedicineRoutes = router;
