@@ -36,7 +36,7 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, medicineFilterableFields as any);
   const options = pick(req.query, medicinePaginationFields as any);
   const result = await MedicineService.getAllFromDB(filters, options);
-  
+
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -46,7 +46,23 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+const getCategories = catchAsync(
+  async (_req: Request, res: Response) => {
+    const result = await MedicineService.getCategories();
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Categories fetched successfully",
+      data: result,
+    });
+  },
+);
+
+
 export const MedicineController = {
   create,
   getAllFromDB,
+  getCategories,
 };

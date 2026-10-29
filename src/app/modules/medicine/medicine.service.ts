@@ -47,7 +47,8 @@ const getAllFromDB = async (
   filters: Record<string, any>,
   options: IPaginationOptions,
 ) => {
-  const { page, limit, skip, sortBy, sortOrder } = paginationHelper.calculatePagination(options);
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
   const {
     searchTerm,
     category,
@@ -128,7 +129,35 @@ const getAllFromDB = async (
   };
 };
 
+const getCategories = async () => {
+  return prisma.medicineCategory
+    .findMany({
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: {
+            medicines: {
+              where: { isDeleted: false },
+            },
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    })
+    .then((categories) =>
+      categories.map((category) => ({
+        id: category.id,
+        category: category.name,
+        count: category._count.medicines,
+      })),
+    );
+};
+
 export const MedicineService = {
   createIntoDB,
   getAllFromDB,
+  getCategories,
 };

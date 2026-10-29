@@ -9,6 +9,7 @@ import validateBody from "../../middlewares/validateBody";
 const router = express.Router();
 
 router.get("/", MedicineController.getAllFromDB);
+router.get("/categories", MedicineController.getCategories);
 
 router.post(
   "/",
