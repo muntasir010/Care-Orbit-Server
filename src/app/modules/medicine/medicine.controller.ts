@@ -46,23 +46,30 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getCategories = catchAsync(async (_req: Request, res: Response) => {
+  const result = await MedicineService.getCategories();
 
-const getCategories = catchAsync(
-  async (_req: Request, res: Response) => {
-    const result = await MedicineService.getCategories();
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Categories fetched successfully",
+    data: result,
+  });
+});
 
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "Categories fetched successfully",
-      data: result,
-    });
-  },
-);
-
+const getById = catchAsync(async (req: Request, res: Response) => {
+  const result = await MedicineService.getByIdFromDB(req.params.id as string);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Medicine fetched",
+    data: result,
+  });
+});
 
 export const MedicineController = {
   create,
   getAllFromDB,
   getCategories,
+  getById,
 };

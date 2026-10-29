@@ -6,10 +6,8 @@ import {
   IPaginationOptions,
   paginationHelper,
 } from "../../interfaces/paginationHelper";
-import {
-  medicineSearchableFields,
-  medicineSortableFields,
-} from "./medicine.constant";
+import { medicineSearchableFields } from "./medicine.constant";
+import AppError from "../../errors/AppError";
 
 type CreateMedicinePayload = z.infer<
   typeof MedicineValidation.createMedicineSchema
@@ -156,8 +154,17 @@ const getCategories = async () => {
     );
 };
 
+const getByIdFromDB = async (id: string) => {
+  const medicine = await prisma.medicine.findFirst({
+    where: { id, isDeleted: false },
+  });
+  if (!medicine) throw new AppError(404, "Medicine not found");
+  return medicine;
+};
+
 export const MedicineService = {
   createIntoDB,
   getAllFromDB,
   getCategories,
+  getByIdFromDB,
 };

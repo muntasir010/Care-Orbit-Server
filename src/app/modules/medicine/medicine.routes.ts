@@ -10,6 +10,7 @@ const router = express.Router();
 
 router.get("/", MedicineController.getAllFromDB);
 router.get("/categories", MedicineController.getCategories);
+router.get("/:id", MedicineController.getById);
 
 router.post(
   "/",
