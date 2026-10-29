@@ -195,10 +195,23 @@ const updateIntoDB = async (id: string, payload: UpdateMedicinePayload) => {
   });
 };
 
+const softDeleteFromDB = async (id: string) => {
+  await getByIdFromDB(id);
+  return prisma.medicine.update({
+    where: {
+      id,
+    },
+    data: {
+      isDeleted: true,
+    },
+  });
+};
+
 export const MedicineService = {
   createIntoDB,
   getAllFromDB,
   getCategories,
   getByIdFromDB,
   updateIntoDB,
+  softDeleteFromDB,
 };

@@ -28,4 +28,6 @@ router.patch(
   MedicineController.updateIntoDB,
 );
 
+router.delete("/:id", auth(UserRole.ADMIN), MedicineController.softDelete);
+
 export const MedicineRoutes = router;
