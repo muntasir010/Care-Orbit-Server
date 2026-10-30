@@ -9,6 +9,7 @@ import {
 } from "./medicineOrder.constant";
 import pick from "../../interfaces/pick";
 
+// Create Order (Patient)
 const createOrder = catchAsync(
   async (req: Request & { user?: any }, res: Response) => {
     if (req.file)
@@ -27,6 +28,7 @@ const createOrder = catchAsync(
   },
 );
 
+// Get My Orders (Patient)
 const getMyOrders = catchAsync(
   async (req: Request & { user?: any }, res: Response) => {
     const filters = pick(req.query, orderFilterableFields as any);
@@ -48,7 +50,27 @@ const getMyOrders = catchAsync(
   },
 );
 
+// Get All Orders (Admin)
+const getAllOrders = catchAsync(async (req: Request, res: Response) => {
+  const filters = pick(req.query, orderFilterableFields as any);
+  const options = pick(req.query, orderPaginationFields as any);
+
+  const result = await MedicineOrderService.getAllOrders(
+    filters,
+    options,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "All orders fetched successfully",
+    meta: result.meta,
+    data: result.data,
+  });
+});
+
 export const MedicineOrderController = {
   createOrder,
   getMyOrders,
+  getAllOrders,
 };

@@ -12,7 +12,7 @@ import { PrescriptionRoutes } from "../modules/prescription/prescription.routes"
 import { ReviewRoutes } from "../modules/review/review.routes";
 import { MetaRoutes } from "../modules/meta/meta.routes";
 import { MedicineRoutes } from "../modules/medicine/medicine.routes";
-import { MedicineOrderRoutes } from "../modules/medicineOrder/medicine.routes";
+import { MedicineOrderRoutes } from "../modules/medicineOrder/medicineOrder.routes";
 
 const router = express.Router();
 

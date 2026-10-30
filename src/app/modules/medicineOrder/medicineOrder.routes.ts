@@ -8,14 +8,13 @@ import { MedicineOrderValidation } from "./medicineOrderValidation";
 
 const router = Router();
 
-// Get My Orders ----> patient
+// Patient Routes
 router.get(
   "/my",
   auth(UserRole.PATIENT),
   MedicineOrderController.getMyOrders,
 );
 
-// Create Order ----> patient
 router.post(
   "/",
   auth(UserRole.PATIENT),
@@ -23,5 +22,8 @@ router.post(
   validateBody(MedicineOrderValidation.createOrderSchema),
   MedicineOrderController.createOrder,
 );
+
+// Admin Routes
+router.get("/", auth(UserRole.ADMIN), MedicineOrderController.getAllOrders);
 
 export const MedicineOrderRoutes = router;
