@@ -3,9 +3,11 @@ import catchAsync from "../../shared/catchAsync";
 import { fileUploader } from "../../helper/fileUploader";
 import { MedicineOrderService } from "./medicineOrder.service";
 import sendResponse from "../../shared/sendResponse";
-
-// const getUser = (req: Request) =>
-//   (req as any).user as Parameters<typeof MedicineOrderService.createOrder>[0];
+import {
+  orderFilterableFields,
+  orderPaginationFields,
+} from "./medicineOrder.constant";
+import pick from "../../interfaces/pick";
 
 const createOrder = catchAsync(
   async (req: Request & { user?: any }, res: Response) => {
@@ -13,7 +15,7 @@ const createOrder = catchAsync(
       req.body.prescriptionUrl = await fileUploader.uploadToCloudinary(
         req.file,
       );
-      
+
     const result = await MedicineOrderService.createOrder(req.user, req.body);
 
     sendResponse(res, {
@@ -25,6 +27,28 @@ const createOrder = catchAsync(
   },
 );
 
+const getMyOrders = catchAsync(
+  async (req: Request & { user?: any }, res: Response) => {
+    const filters = pick(req.query, orderFilterableFields as any);
+    const options = pick(req.query, orderPaginationFields as any);
+
+    const result = await MedicineOrderService.getMyOrders(
+      req.user,
+      filters,
+      options,
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "My orders fetched successfully",
+      meta: result.meta,
+      data: result.data,
+    });
+  },
+);
+
 export const MedicineOrderController = {
   createOrder,
+  getMyOrders,
 };

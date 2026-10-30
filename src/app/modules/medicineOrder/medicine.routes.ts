@@ -8,6 +8,14 @@ import { MedicineOrderValidation } from "./medicineOrderValidation";
 
 const router = Router();
 
+// Get My Orders ----> patient
+router.get(
+  "/my",
+  auth(UserRole.PATIENT),
+  MedicineOrderController.getMyOrders,
+);
+
+// Create Order ----> patient
 router.post(
   "/",
   auth(UserRole.PATIENT),

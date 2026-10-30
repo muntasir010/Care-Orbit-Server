@@ -1,7 +1,11 @@
-import { Prisma } from "@prisma/client";
+import { MedicineOrderStatus, Prisma } from "@prisma/client";
 import prisma from "../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { IAuthUser } from "../../interfaces/common";
+import {
+  IPaginationOptions,
+  paginationHelper,
+} from "../../interfaces/paginationHelper";
 
 type TCreateOrderPayload = {
   items: {
@@ -167,7 +171,123 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
   });
 };
 
+const getOrders = async (
+  filters: Record<string, any>,
+  options: IPaginationOptions,
+  baseWhere: Prisma.MedicineOrderWhereInput,
+) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+
+  const { searchTerm, status, paymentStatus, fromDate, toDate } = filters;
+
+  const and: Prisma.MedicineOrderWhereInput[] = [baseWhere];
+
+  if (searchTerm) {
+    and.push({
+      OR: [
+        {
+          orderNumber: {
+            contains: String(searchTerm),
+            mode: "insensitive",
+          },
+        },
+        {
+          shippingName: {
+            contains: String(searchTerm),
+            mode: "insensitive",
+          },
+        },
+        {
+          patient: {
+            name: {
+              contains: String(searchTerm),
+              mode: "insensitive",
+            },
+          },
+        },
+        {
+          patient: {
+            email: {
+              contains: String(searchTerm),
+              mode: "insensitive",
+            },
+          },
+        },
+      ],
+    });
+  }
+
+  if (status) {
+    and.push({ status: status as MedicineOrderStatus });
+  }
+
+  if (paymentStatus) {
+    and.push({ paymentStatus: paymentStatus as any });
+  }
+
+  if (fromDate || toDate) {
+    and.push({
+      createdAt: {
+        ...(fromDate && {
+          gte: new Date(String(fromDate)),
+        }),
+        ...(toDate && {
+          lte: new Date(`${toDate}T23:59:59.999Z`),
+        }),
+      },
+    });
+  }
+
+  const where: Prisma.MedicineOrderWhereInput = {
+    AND: and,
+  };
+
+  const [data, total] = await Promise.all([
+    prisma.medicineOrder.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      include: orderInclude,
+    }),
+
+    prisma.medicineOrder.count({ where }),
+  ]);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+    data,
+  };
+};
+
+const getMyOrders = async (
+  user: IAuthUser,
+  filters: Record<string, any>,
+  options: IPaginationOptions,
+) => {
+  const patient = await getPatient(user?.email as string);
+
+  return getOrders(filters, options, { patientId: patient.id });
+};
+
+const getAllOrders = async (
+  filters: Record<string, any>,
+  options: IPaginationOptions,
+) => {
+  return getOrders(filters, options, {});
+};
 
 export const MedicineOrderService = {
   createOrder,
+  getOrders,
+  getMyOrders,
+  getAllOrders,
 };
