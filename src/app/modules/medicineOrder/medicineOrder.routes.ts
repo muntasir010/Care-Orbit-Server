@@ -19,6 +19,12 @@ router.post(
   MedicineOrderController.createOrder,
 );
 
+router.patch(
+  "/:id/cancel",
+  auth(UserRole.PATIENT),
+  MedicineOrderController.cancelMyOrder,
+);
+
 // Get Order By ID (Patient + Admin)
 router.get(
   "/:id",

@@ -353,6 +353,37 @@ const updateOrderStatus = async (id: string, status: MedicineOrderStatus) => {
   });
 };
 
+const cancelMyOrder = async (user: IAuthUser, id: string) => {
+  const patient = await getPatient(user?.email!);
+
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.medicineOrder.findFirst({
+      where: {
+        id,
+        patientId: patient.id,
+      },
+    });
+
+    if (!order) {
+      throw new AppError(404, "Order not found");
+    }
+
+    if (order.status !== "PENDING") {
+      throw new AppError(400, "Only pending orders can be cancelled");
+    }
+
+    await restock(tx, id);
+
+    return tx.medicineOrder.update({
+      where: { id },
+      data: {
+        status: "CANCELLED",
+      },
+      include: orderInclude,
+    });
+  });
+};
+
 export const MedicineOrderService = {
   createOrder,
   getOrders,
@@ -360,4 +391,5 @@ export const MedicineOrderService = {
   getAllOrders,
   getOrderById,
   updateOrderStatus,
+  cancelMyOrder
 };

@@ -96,6 +96,22 @@ const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Cancel My Order (Patient)
+const cancelMyOrder = catchAsync(
+  async (req: Request & { user?: any }, res: Response) => {
+    const result = await MedicineOrderService.cancelMyOrder(
+      req.user,
+      req.params.id as string,
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Order cancelled successfully",
+      data: result,
+    });
+  },
+);
 
 export const MedicineOrderController = {
   createOrder,
@@ -103,4 +119,5 @@ export const MedicineOrderController = {
   getAllOrders,
   getOrderById,
   updateOrderStatus,
+  cancelMyOrder,
 };
