@@ -55,10 +55,7 @@ const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, orderFilterableFields as any);
   const options = pick(req.query, orderPaginationFields as any);
 
-  const result = await MedicineOrderService.getAllOrders(
-    filters,
-    options,
-  );
+  const result = await MedicineOrderService.getAllOrders(filters, options);
 
   sendResponse(res, {
     statusCode: 200,
@@ -69,8 +66,25 @@ const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getOrderById = catchAsync(
+  async (req: Request & { user?: any }, res: Response) => {
+    const result = await MedicineOrderService.getOrderById(
+      req.user,
+      req.params.id as string,
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Order fetched successfully",
+      data: result,
+    });
+  },
+);
+
 export const MedicineOrderController = {
   createOrder,
   getMyOrders,
   getAllOrders,
+  getOrderById,
 };

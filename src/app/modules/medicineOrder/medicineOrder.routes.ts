@@ -9,11 +9,7 @@ import { MedicineOrderValidation } from "./medicineOrderValidation";
 const router = Router();
 
 // Patient Routes
-router.get(
-  "/my",
-  auth(UserRole.PATIENT),
-  MedicineOrderController.getMyOrders,
-);
+router.get("/my", auth(UserRole.PATIENT), MedicineOrderController.getMyOrders);
 
 router.post(
   "/",
@@ -21,6 +17,13 @@ router.post(
   fileUploader.prescriptionUpload.single("prescription"),
   validateBody(MedicineOrderValidation.createOrderSchema),
   MedicineOrderController.createOrder,
+);
+
+// Get Order By ID (Patient + Admin)
+router.get(
+  "/:id",
+  auth(UserRole.PATIENT, UserRole.ADMIN),
+  MedicineOrderController.getOrderById,
 );
 
 // Admin Routes

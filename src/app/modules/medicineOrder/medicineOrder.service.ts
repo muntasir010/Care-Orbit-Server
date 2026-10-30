@@ -1,4 +1,4 @@
-import { MedicineOrderStatus, Prisma } from "@prisma/client";
+import { MedicineOrderStatus, Prisma, UserRole } from "@prisma/client";
 import prisma from "../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { IAuthUser } from "../../interfaces/common";
@@ -285,9 +285,31 @@ const getAllOrders = async (
   return getOrders(filters, options, {});
 };
 
+const getOrderById = async (user: IAuthUser, id: string) => {
+  const order = await prisma.medicineOrder.findUnique({
+    where: { id },
+    include: orderInclude,
+  });
+
+  if (!order) {
+    throw new AppError(404, "Order not found");
+  }
+
+  if (user?.role !== UserRole.ADMIN) {
+    const patient = await getPatient(user?.email!);
+
+    if (order.patientId !== patient.id) {
+      throw new AppError(403, "This is not your order");
+    }
+  }
+
+  return order;
+};
+
 export const MedicineOrderService = {
   createOrder,
   getOrders,
   getMyOrders,
   getAllOrders,
+  getOrderById,
 };
