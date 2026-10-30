@@ -82,9 +82,25 @@ const getOrderById = catchAsync(
   },
 );
 
+const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await MedicineOrderService.updateOrderStatus(
+    req.params.id as string,
+    req.body.status,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Order status updated successfully",
+    data: result,
+  });
+});
+
+
 export const MedicineOrderController = {
   createOrder,
   getMyOrders,
   getAllOrders,
   getOrderById,
+  updateOrderStatus,
 };

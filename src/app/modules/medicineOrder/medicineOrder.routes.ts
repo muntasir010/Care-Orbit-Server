@@ -29,4 +29,11 @@ router.get(
 // Admin Routes
 router.get("/", auth(UserRole.ADMIN), MedicineOrderController.getAllOrders);
 
+router.patch(
+  "/:id/status",
+  auth(UserRole.ADMIN),
+  validateBody(MedicineOrderValidation.updateOrderStatusSchema),
+  MedicineOrderController.updateOrderStatus,
+);
+
 export const MedicineOrderRoutes = router;

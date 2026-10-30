@@ -52,6 +52,24 @@ const round2 = (value: number) => {
   return Math.round(value * 100) / 100;
 };
 
+const allowedTransitions: Record<MedicineOrderStatus, MedicineOrderStatus[]> = {
+  PENDING: ["CONFIRMED", "CANCELLED"],
+  CONFIRMED: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["DELIVERED"],
+  DELIVERED: [],
+  CANCELLED: [],
+};
+
+const restock = async (tx: Prisma.TransactionClient, orderId: string) => {
+  const items = await tx.medicineOrderItem.findMany({ where: { orderId } });
+  for (const item of items) {
+    await tx.medicine.update({
+      where: { id: item.medicineId },
+      data: { stock: { increment: item.quantity } },
+    });
+  }
+};
+
 const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
   const patient = await getPatient(user?.email as string);
 
@@ -306,10 +324,40 @@ const getOrderById = async (user: IAuthUser, id: string) => {
   return order;
 };
 
+const updateOrderStatus = async (id: string, status: MedicineOrderStatus) => {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.medicineOrder.findUnique({
+      where: { id },
+    });
+
+    if (!order) {
+      throw new AppError(404, "Order not found");
+    }
+
+    if (!allowedTransitions[order.status].includes(status)) {
+      throw new AppError(
+        400,
+        `Cannot change status from ${order.status} to ${status}`,
+      );
+    }
+
+    if (status === "CANCELLED") {
+      await restock(tx, id);
+    }
+
+    return tx.medicineOrder.update({
+      where: { id },
+      data: { status },
+      include: orderInclude,
+    });
+  });
+};
+
 export const MedicineOrderService = {
   createOrder,
   getOrders,
   getMyOrders,
   getAllOrders,
   getOrderById,
+  updateOrderStatus,
 };
