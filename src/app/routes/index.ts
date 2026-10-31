@@ -13,6 +13,7 @@ import { ReviewRoutes } from "../modules/review/review.routes";
 import { MetaRoutes } from "../modules/meta/meta.routes";
 import { MedicineRoutes } from "../modules/medicine/medicine.routes";
 import { MedicineOrderRoutes } from "../modules/medicineOrder/medicineOrder.routes";
+import { CartRoutes } from "../modules/cart/cart.routes";
 
 const router = express.Router();
 
@@ -72,7 +73,11 @@ const moduleRoutes = [
   {
     path: "/medicine-order",
     route: MedicineOrderRoutes,
-  }
+  },
+  {
+    path: "/cart",
+    route: CartRoutes,
+  },
 ];
 
 moduleRoutes.forEach((module) => {
