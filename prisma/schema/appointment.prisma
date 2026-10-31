@@ -20,15 +20,20 @@ model Appointment {
 }
 
 model Payment {
-    id                 String        @id @default(uuid())
-    appointmentId      String        @unique
-    appointment        Appointment   @relation(fields: [appointmentId], references: [id])
+    id              String  @id @default(uuid())
+    appointmentId   String? @unique
+    medicineOrderId String? @unique
+
+    appointment   Appointment?   @relation(fields: [appointmentId], references: [id])
+    medicineOrder MedicineOrder? @relation(fields: [medicineOrderId], references: [id])
+
     amount             Float
-    transactionId      String
+    transactionId      String        @unique
     status             PaymentStatus @default(UNPAID)
     paymentGatewayData Json?
-    createdAt          DateTime      @default(now())
-    updatedAt          DateTime      @updatedAt
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     @@map("payments")
 }

@@ -132,6 +132,8 @@ model MedicineOrder {
   prescriptionUpload PrescriptionUpload? @relation(fields: [prescriptionUploadId], references: [id])
   prescription       Prescription?       @relation(fields: [prescriptionId], references: [id])
 
+  payment Payment?
+
   @@index([patientId])
   @@index([status])
   @@map("medicine_orders")
