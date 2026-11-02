@@ -29,5 +29,10 @@ router.delete(
   CartController.removeCartItem,
 );
 
+router.delete(
+  "/",
+  auth(UserRole.PATIENT),
+  CartController.clearCart,
+);
 
 export const CartRoutes = router;

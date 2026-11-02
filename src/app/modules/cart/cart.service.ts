@@ -217,10 +217,22 @@ const removeCartItem = async (
   return getMyCart(user);
 };
 
+const clearCart = async (user: IAuthUser) => {
+  const cart = await getPatientCart(user);
+
+  await prisma.cartItem.deleteMany({
+    where: {
+      cartId: cart.id,
+    },
+  });
+
+  return getMyCart(user);
+};
 
 export const CartService = {
   getMyCart,
   addToCart,
   updateCartItem,
   removeCartItem,
+  clearCart,
 };
