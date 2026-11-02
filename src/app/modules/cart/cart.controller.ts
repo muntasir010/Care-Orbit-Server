@@ -46,9 +46,25 @@ const updateCartItem = catchAsync(
   },
 );
 
+const removeCartItem = catchAsync(
+  async (req: Request & { user?: any }, res: Response) => {
+    const result = await CartService.removeCartItem(
+      req.user,
+      req.params.id as string,
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Cart item removed successfully",
+      data: result,
+    });
+  },
+);
 
 export const CartController = {
   getMyCart,
   addToCart,
-  updateCartItem
+  updateCartItem,
+  removeCartItem,
 };

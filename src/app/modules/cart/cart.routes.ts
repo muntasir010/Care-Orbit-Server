@@ -23,4 +23,11 @@ router.patch(
   CartController.updateCartItem,
 );
 
+router.delete(
+  "/items/:id",
+  auth(UserRole.PATIENT),
+  CartController.removeCartItem,
+);
+
+
 export const CartRoutes = router;

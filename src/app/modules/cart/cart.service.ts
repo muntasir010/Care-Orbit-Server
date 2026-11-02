@@ -191,9 +191,36 @@ const updateCartItem = async (
   return getMyCart(user);
 };
 
+const removeCartItem = async (
+  user: IAuthUser,
+  itemId: string,
+) => {
+  const cart = await getPatientCart(user);
+
+  const cartItem = await prisma.cartItem.findFirst({
+    where: {
+      id: itemId,
+      cartId: cart.id,
+    },
+  });
+
+  if (!cartItem) {
+    throw new Error("Cart item not found");
+  }
+
+  await prisma.cartItem.delete({
+    where: {
+      id: cartItem.id,
+    },
+  });
+
+  return getMyCart(user);
+};
+
 
 export const CartService = {
   getMyCart,
   addToCart,
   updateCartItem,
+  removeCartItem,
 };
