@@ -144,9 +144,56 @@ const addToCart = async (
   return getMyCart(user);
 };
 
+// Update Cart Item Quantity
+const updateCartItem = async (
+  user: IAuthUser,
+  itemId: string,
+  quantity: number,
+) => {
+  const cart = await getPatientCart(user);
+
+  const cartItem = await prisma.cartItem.findFirst({
+    where: {
+      id: itemId,
+      cartId: cart.id,
+    },
+    include: {
+      medicine: true,
+    },
+  });
+
+  if (!cartItem) {
+    throw new Error("Cart item not found");
+  }
+
+  if (
+    !cartItem.medicine.isActive ||
+    cartItem.medicine.isDeleted
+  ) {
+    throw new Error("This medicine is no longer available");
+  }
+
+  if (quantity > cartItem.medicine.stock) {
+    throw new Error(
+      `Only ${cartItem.medicine.stock} items are available`,
+    );
+  }
+
+  await prisma.cartItem.update({
+    where: {
+      id: cartItem.id,
+    },
+    data: {
+      quantity,
+    },
+  });
+
+  return getMyCart(user);
+};
 
 
 export const CartService = {
   getMyCart,
   addToCart,
+  updateCartItem,
 };

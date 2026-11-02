@@ -7,17 +7,20 @@ import validateBody from "../../middlewares/validateBody";
 
 const router = express.Router();
 
-router.get(
-  "/",
-  auth(UserRole.PATIENT),
-  CartController.getMyCart,
-);
+router.get("/", auth(UserRole.PATIENT), CartController.getMyCart);
 
 router.post(
   "/items",
   auth(UserRole.PATIENT),
   validateBody(CartValidation.addToCartSchema),
   CartController.addToCart,
+);
+
+router.patch(
+  "/items/:id",
+  auth(UserRole.PATIENT),
+  validateBody(CartValidation.updateCartItemSchema),
+  CartController.updateCartItem,
 );
 
 export const CartRoutes = router;
