@@ -1,4 +1,9 @@
-import { MedicineOrderStatus, Prisma, UserRole } from "@prisma/client";
+import {
+  MedicineOrderStatus,
+  MedicinePaymentMethod,
+  Prisma,
+  UserRole,
+} from "@prisma/client";
 import prisma from "../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { IAuthUser } from "../../interfaces/common";
@@ -6,6 +11,7 @@ import {
   IPaginationOptions,
   paginationHelper,
 } from "../../interfaces/paginationHelper";
+import { stripe } from "../../helper/stripe";
 
 type TCreateOrderPayload = {
   items: {
@@ -15,6 +21,7 @@ type TCreateOrderPayload = {
   shippingName: string;
   shippingPhone: string;
   shippingAddress: string;
+  paymentMethod?: MedicinePaymentMethod;
   note?: string;
   prescriptionUploadId?: string;
 };
@@ -173,6 +180,7 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
         discount,
         deliveryFee,
         totalAmount,
+        paymentMethod: payload.paymentMethod ?? MedicinePaymentMethod.ONLINE,
         shippingName: payload.shippingName,
         shippingPhone: payload.shippingPhone,
         shippingAddress: payload.shippingAddress,
@@ -384,6 +392,91 @@ const cancelMyOrder = async (user: IAuthUser, id: string) => {
   });
 };
 
+const initiatePaymentForMedicineOrder = async (
+  orderId: string,
+  user: IAuthUser,
+) => {
+  const patient = await getPatient(user?.email as string);
+
+  const order = await prisma.medicineOrder.findFirst({
+    where: {
+      id: orderId,
+      patientId: patient.id,
+    },
+    include: {
+      payment: true,
+      items: true,
+    },
+  });
+
+  if (!order) {
+    throw new AppError(404, "Order not found or unauthorized");
+  }
+
+  if (order.status === MedicineOrderStatus.CANCELLED) {
+    throw new AppError(400, "Cannot pay for a cancelled order");
+  }
+
+  if (order.paymentMethod !== MedicinePaymentMethod.ONLINE) {
+    throw new AppError(400, "This order is not an online payment order");
+  }
+
+  if (order.paymentStatus === "PAID") {
+    throw new AppError(400, "Payment already completed");
+  }
+
+  if (!order.payment) {
+    throw new AppError(404, "Payment record not found");
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    mode: "payment",
+    customer_email: user?.email || "",
+    line_items: [
+      {
+        price_data: {
+          currency: "bdt",
+          product_data: {
+            name: `Medicine Order ${order.orderNumber}`,
+          },
+          unit_amount: Math.round(order.totalAmount * 100),
+        },
+        quantity: 1,
+      },
+    ],
+    metadata: {
+      orderType: "MEDICINE_ORDER",
+      medicineOrderId: order.id,
+      paymentId: order.payment.id,
+    },
+    success_url: `${
+      process.env.FRONTEND_URL || "http://localhost:3000"
+    }/payment/success?type=medicine&orderId=${order.id}`,
+    cancel_url: `${
+      process.env.FRONTEND_URL || "http://localhost:3000"
+    }/medicines/orders/${order.id}`,
+  });
+
+  await prisma.payment.update({
+    where: {
+      id: order.payment.id,
+    },
+    data: {
+      paymentGatewayData: JSON.parse(JSON.stringify(session)),
+    },
+  });
+
+  if (!session.url) {
+    throw new AppError(500, "Unable to create Stripe checkout session");
+  }
+
+  return {
+    paymentUrl: session.url,
+    sessionId: session.id,
+  };
+};
+
 export const MedicineOrderService = {
   createOrder,
   getOrders,
@@ -391,5 +484,6 @@ export const MedicineOrderService = {
   getAllOrders,
   getOrderById,
   updateOrderStatus,
-  cancelMyOrder
+  cancelMyOrder,
+  initiatePaymentForMedicineOrder,
 };

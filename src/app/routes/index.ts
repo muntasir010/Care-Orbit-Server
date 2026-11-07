@@ -67,7 +67,7 @@ const moduleRoutes = [
     route: MetaRoutes,
   },
   {
-    path: "/medicine",
+    path: "/medicines",
     route: MedicineRoutes,
   },
   {

@@ -58,7 +58,18 @@ const getCategories = catchAsync(async (_req: Request, res: Response) => {
 });
 
 const getById = catchAsync(async (req: Request, res: Response) => {
-  const result = await MedicineService.getByIdFromDB(req.params.id as string);
+  console.log("DETAILS REQUEST RECEIVED");
+  console.log("Medicine ID:", JSON.stringify(req.params.id));
+
+  const medicineId = Array.isArray(req.params.id)
+    ? req.params.id[0]?.trim()
+    : req.params.id?.trim();
+  if (!medicineId) {
+    throw new Error("Medicine ID is required");
+  }
+
+  const result = await MedicineService.getByIdFromDB(medicineId);
+
   sendResponse(res, {
     statusCode: 200,
     success: true,

@@ -113,6 +113,24 @@ const cancelMyOrder = catchAsync(
   },
 );
 
+// Initiate Online Payment
+const initiatePayment = catchAsync(
+  async (req: Request & { user?: any }, res: Response) => {
+    const result =
+      await MedicineOrderService.initiatePaymentForMedicineOrder(
+        req.params.id as string,
+        req.user,
+      );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Payment session created successfully",
+      data: result,
+    });
+  },
+);
+
 export const MedicineOrderController = {
   createOrder,
   getMyOrders,
@@ -120,4 +138,5 @@ export const MedicineOrderController = {
   getOrderById,
   updateOrderStatus,
   cancelMyOrder,
+  initiatePayment,
 };

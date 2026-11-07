@@ -159,10 +159,19 @@ const getCategories = async () => {
 };
 
 const getByIdFromDB = async (id: string) => {
-  const medicine = await prisma.medicine.findFirst({
-    where: { id, isDeleted: false },
+
+  const medicine = await prisma.medicine.findUnique({
+    where: { id },
   });
-  if (!medicine) throw new AppError(404, "Medicine not found");
+
+  if (!medicine) {
+    throw new AppError(404, "Medicine not found");
+  }
+
+  if (medicine.isDeleted) {
+    throw new AppError(404, "Medicine not found");
+  }
+
   return medicine;
 };
 

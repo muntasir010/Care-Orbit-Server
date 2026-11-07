@@ -74,3 +74,8 @@ enum PrescriptionUploadStatus {
   APPROVED
   REJECTED
 }
+
+enum MedicinePaymentMethod {
+  ONLINE
+  COD
+}

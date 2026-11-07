@@ -3,7 +3,7 @@ import auth from "../../middlewares/auth";
 import { UserRole } from "@prisma/client";
 import { fileUploader } from "../../helper/fileUploader";
 import validateBody from "../../middlewares/validateBody";
-import { MedicineOrderController } from "./medicine.controller";
+import { MedicineOrderController } from "./medicineOrder.controller";
 import { MedicineOrderValidation } from "./medicineOrderValidation";
 
 const router = Router();
@@ -23,6 +23,12 @@ router.patch(
   "/:id/cancel",
   auth(UserRole.PATIENT),
   MedicineOrderController.cancelMyOrder,
+);
+
+router.post(
+  "/:id/initiate-payment",
+  auth(UserRole.PATIENT),
+  MedicineOrderController.initiatePayment,
 );
 
 // Get Order By ID (Patient + Admin)

@@ -110,6 +110,7 @@ model MedicineOrder {
   patientId       String
   status          MedicineOrderStatus   @default(PENDING)
   paymentStatus   MedicinePaymentStatus @default(UNPAID)
+  paymentMethod   MedicinePaymentMethod @default(ONLINE)
   subtotal        Float
   discount        Float                 @default(0)
   deliveryFee     Float                 @default(0)
