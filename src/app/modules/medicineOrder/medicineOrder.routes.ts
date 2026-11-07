@@ -48,4 +48,10 @@ router.patch(
   MedicineOrderController.updateOrderStatus,
 );
 
+router.patch(
+  "/:id/mark-cod-paid",
+  auth(UserRole.ADMIN),
+  MedicineOrderController.markCODPaymentAsPaid,
+);
+
 export const MedicineOrderRoutes = router;

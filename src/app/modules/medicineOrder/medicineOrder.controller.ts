@@ -131,6 +131,22 @@ const initiatePayment = catchAsync(
   },
 );
 
+// Confirm COD Payment (Admin)
+const markCODPaymentAsPaid = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await MedicineOrderService.markCODPaymentAsPaid(
+      req.params.id as string,
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "COD payment marked as paid successfully",
+      data: result,
+    });
+  },
+);
+
 export const MedicineOrderController = {
   createOrder,
   getMyOrders,
@@ -139,4 +155,5 @@ export const MedicineOrderController = {
   updateOrderStatus,
   cancelMyOrder,
   initiatePayment,
+  markCODPaymentAsPaid,
 };

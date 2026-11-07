@@ -1,6 +1,7 @@
 import {
   MedicineOrderStatus,
   MedicinePaymentMethod,
+  PaymentStatus,
   Prisma,
   UserRole,
 } from "@prisma/client";
@@ -477,6 +478,61 @@ const initiatePaymentForMedicineOrder = async (
   };
 };
 
+const markCODPaymentAsPaid = async (orderId: string) => {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.medicineOrder.findUnique({
+      where: {
+        id: orderId,
+      },
+      include: {
+        payment: true,
+      },
+    });
+
+    if (!order) {
+      throw new AppError(404, "Order not found");
+    }
+
+    if (order.paymentMethod !== MedicinePaymentMethod.COD) {
+      throw new AppError(400, "This is not a COD order");
+    }
+
+    if (order.paymentStatus === "PAID") {
+      throw new AppError(400, "Payment is already completed");
+    }
+
+    if (order.status !== MedicineOrderStatus.DELIVERED) {
+      throw new AppError(
+        400,
+        "COD payment can only be confirmed after delivery",
+      );
+    }
+
+    if (!order.payment) {
+      throw new AppError(404, "Payment record not found");
+    }
+
+    await tx.payment.update({
+      where: {
+        id: order.payment.id,
+      },
+      data: {
+        status: PaymentStatus.PAID,
+      },
+    });
+
+    return tx.medicineOrder.update({
+      where: {
+        id: orderId,
+      },
+      data: {
+        paymentStatus: "PAID",
+      },
+      include: orderInclude,
+    });
+  });
+};
+
 export const MedicineOrderService = {
   createOrder,
   getOrders,
@@ -486,4 +542,5 @@ export const MedicineOrderService = {
   updateOrderStatus,
   cancelMyOrder,
   initiatePaymentForMedicineOrder,
+  markCODPaymentAsPaid,
 };
