@@ -13,6 +13,7 @@ import {
   paginationHelper,
 } from "../../interfaces/paginationHelper";
 import { stripe } from "../../helper/stripe";
+import { randomUUID } from "crypto";
 
 type TCreateOrderPayload = {
   items: {
@@ -171,7 +172,32 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
 
     const orderNumber = `MO-${Date.now()}`;
 
-    return tx.medicineOrder.create({
+    // return tx.medicineOrder.create({
+    //   data: {
+    //     orderNumber,
+    //     patient: {
+    //       connect: { id: patient.id },
+    //     },
+    //     subtotal: round2(subtotal),
+    //     discount,
+    //     deliveryFee,
+    //     totalAmount,
+    //     paymentMethod: payload.paymentMethod ?? MedicinePaymentMethod.ONLINE,
+    //     shippingName: payload.shippingName,
+    //     shippingPhone: payload.shippingPhone,
+    //     shippingAddress: payload.shippingAddress,
+    //     note: payload.note,
+    //     prescriptionUpload: payload.prescriptionUploadId
+    //       ? { connect: { id: payload.prescriptionUploadId } }
+    //       : undefined,
+    //     items: {
+    //       create: itemsData,
+    //     },
+    //   },
+    //   include: orderInclude,
+    // });
+    // 1. Create Medicine Order
+    const order = await tx.medicineOrder.create({
       data: {
         orderNumber,
         patient: {
@@ -181,20 +207,37 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
         discount,
         deliveryFee,
         totalAmount,
+
         paymentMethod: payload.paymentMethod ?? MedicinePaymentMethod.ONLINE,
+
         shippingName: payload.shippingName,
         shippingPhone: payload.shippingPhone,
         shippingAddress: payload.shippingAddress,
         note: payload.note,
+
         prescriptionUpload: payload.prescriptionUploadId
           ? { connect: { id: payload.prescriptionUploadId } }
           : undefined,
+
         items: {
           create: itemsData,
         },
       },
       include: orderInclude,
     });
+
+    // 2. Create Payment Record
+    await tx.payment.create({
+      data: {
+        medicineOrderId: order.id,
+        amount: totalAmount,
+        transactionId: randomUUID(),
+        status: PaymentStatus.UNPAID,
+      },
+    });
+
+    // 3. Return Created Order
+    return order;
   });
 };
 

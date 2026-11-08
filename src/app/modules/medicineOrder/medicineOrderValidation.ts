@@ -14,7 +14,7 @@ const createOrderSchema = z.object({
     .string()
     .regex(/^(?:\+?88)?01[3-9]\d{8}$/, "Invalid Bangladeshi phone number"),
   shippingAddress: z.string().min(5),
-  paymentMethod: z.enum(["COD", "ONLINE"]).default("COD"),
+  paymentMethod: z.enum(["ONLINE", "COD"]).default("ONLINE"),
   note: z.string().optional(),
   prescriptionUrl: z.string().url().optional(),
 });
