@@ -12,11 +12,6 @@ import pick from "../../interfaces/pick";
 // Create Order (Patient)
 const createOrder = catchAsync(
   async (req: Request & { user?: any }, res: Response) => {
-    if (req.file)
-      req.body.prescriptionUrl = await fileUploader.uploadToCloudinary(
-        req.file,
-      );
-
     const result = await MedicineOrderService.createOrder(req.user, req.body);
 
     sendResponse(res, {
@@ -116,11 +111,10 @@ const cancelMyOrder = catchAsync(
 // Initiate Online Payment
 const initiatePayment = catchAsync(
   async (req: Request & { user?: any }, res: Response) => {
-    const result =
-      await MedicineOrderService.initiatePaymentForMedicineOrder(
-        req.params.id as string,
-        req.user,
-      );
+    const result = await MedicineOrderService.initiatePaymentForMedicineOrder(
+      req.params.id as string,
+      req.user,
+    );
 
     sendResponse(res, {
       statusCode: 200,
@@ -132,20 +126,18 @@ const initiatePayment = catchAsync(
 );
 
 // Confirm COD Payment (Admin)
-const markCODPaymentAsPaid = catchAsync(
-  async (req: Request, res: Response) => {
-    const result = await MedicineOrderService.markCODPaymentAsPaid(
-      req.params.id as string,
-    );
+const markCODPaymentAsPaid = catchAsync(async (req: Request, res: Response) => {
+  const result = await MedicineOrderService.markCODPaymentAsPaid(
+    req.params.id as string,
+  );
 
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "COD payment marked as paid successfully",
-      data: result,
-    });
-  },
-);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "COD payment marked as paid successfully",
+    data: result,
+  });
+});
 
 export const MedicineOrderController = {
   createOrder,

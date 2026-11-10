@@ -1,77 +1,77 @@
 model Appointment {
-    id             String            @id @default(uuid())
-    patientId      String
-    patient        Patient           @relation(fields: [patientId], references: [id])
-    doctorId       String
-    doctor         Doctor            @relation(fields: [doctorId], references: [id])
-    scheduleId     String
-    schedule       Schedule          @relation(fields: [scheduleId], references: [id])
-    videoCallingId String
-    status         AppointmentStatus @default(SCHEDULED)
-    paymentStatus  PaymentStatus     @default(UNPAID)
-    createdAt      DateTime          @default(now())
-    updatedAt      DateTime          @updatedAt
+  id             String            @id @default(uuid())
+  patientId      String
+  patient        Patient           @relation(fields: [patientId], references: [id])
+  doctorId       String
+  doctor         Doctor            @relation(fields: [doctorId], references: [id])
+  scheduleId     String
+  schedule       Schedule          @relation(fields: [scheduleId], references: [id])
+  videoCallingId String
+  status         AppointmentStatus @default(SCHEDULED)
+  paymentStatus  PaymentStatus     @default(UNPAID)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
-    payment      Payment?
-    prescription Prescription?
-    review       Review?
+  payment      Payment?
+  prescription Prescription?
+  review       Review?
 
-    @@map("appointments")
+  @@map("appointments")
 }
 
 model Payment {
-    id              String  @id @default(uuid())
-    appointmentId   String? @unique
-    medicineOrderId String? @unique
+  id              String  @id @default(uuid())
+  appointmentId   String? @unique
+  medicineOrderId String? @unique
 
-    appointment   Appointment?   @relation(fields: [appointmentId], references: [id])
-    medicineOrder MedicineOrder? @relation(fields: [medicineOrderId], references: [id])
+  appointment   Appointment?   @relation(fields: [appointmentId], references: [id])
+  medicineOrder MedicineOrder? @relation(fields: [medicineOrderId], references: [id])
 
-    amount             Float
-    transactionId      String        @unique
-    status             PaymentStatus @default(UNPAID)
-    paymentGatewayData Json?
+  amount             Float
+  transactionId      String        @unique
+  status             PaymentStatus @default(UNPAID)
+  paymentGatewayData Json?
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@map("payments")
+  @@map("payments")
 }
 
 model Prescription {
-    id            String      @id @default(uuid())
-    appointmentId String      @unique
-    appointment   Appointment @relation(fields: [appointmentId], references: [id])
-    doctorId      String
-    doctor        Doctor      @relation(fields: [doctorId], references: [id])
-    patientId     String
-    patient       Patient     @relation(fields: [patientId], references: [id])
-    instructions  String
-    followUpDate  DateTime?
-    createdAt     DateTime    @default(now())
-    updatedAt     DateTime    @updatedAt
+  id            String      @id @default(uuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  doctorId      String
+  doctor        Doctor      @relation(fields: [doctorId], references: [id])
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  instructions  String
+  followUpDate  DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
-    medicines      PrescriptionMedicine[]
-    medicineOrders MedicineOrder[]
+  // medicines      PrescriptionMedicine[]
+  //   medicineOrders MedicineOrder[]
 
-    @@map("prescriptions")
+  @@map("prescriptions")
 }
 
 model Review {
-    id        String  @id @default(uuid())
-    patientId String
-    patient   Patient @relation(fields: [patientId], references: [id])
+  id        String  @id @default(uuid())
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
 
-    doctorId String
-    doctor   Doctor @relation(fields: [doctorId], references: [id])
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
 
-    appointmentId String      @unique
-    appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
 
-    rating    Float
-    comment   String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  rating    Float
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@map("reviews")
+  @@map("reviews")
 }

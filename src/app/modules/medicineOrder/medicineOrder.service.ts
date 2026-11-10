@@ -25,7 +25,6 @@ type TCreateOrderPayload = {
   shippingAddress: string;
   paymentMethod?: MedicinePaymentMethod;
   note?: string;
-  prescriptionUploadId?: string;
 };
 
 const orderInclude = {
@@ -112,7 +111,6 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
     }
 
     let subtotal = 0;
-    let needsPrescription = false;
 
     const itemsData: Prisma.MedicineOrderItemCreateWithoutOrderInput[] = [];
 
@@ -136,10 +134,6 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
         throw new AppError(400, `Insufficient stock for ${medicine.name}`);
       }
 
-      if (medicine.requiresPrescription) {
-        needsPrescription = true;
-      }
-
       const unitPrice = round2(
         medicine.price * (1 - medicine.discountPercent / 100),
       );
@@ -159,44 +153,12 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
       });
     }
 
-    if (needsPrescription && !payload.prescriptionUploadId) {
-      throw new AppError(
-        400,
-        "Prescription is required for one or more medicines",
-      );
-    }
-
     const deliveryFee = 0;
     const discount = 0;
     const totalAmount = round2(subtotal - discount + deliveryFee);
 
     const orderNumber = `MO-${Date.now()}`;
 
-    // return tx.medicineOrder.create({
-    //   data: {
-    //     orderNumber,
-    //     patient: {
-    //       connect: { id: patient.id },
-    //     },
-    //     subtotal: round2(subtotal),
-    //     discount,
-    //     deliveryFee,
-    //     totalAmount,
-    //     paymentMethod: payload.paymentMethod ?? MedicinePaymentMethod.ONLINE,
-    //     shippingName: payload.shippingName,
-    //     shippingPhone: payload.shippingPhone,
-    //     shippingAddress: payload.shippingAddress,
-    //     note: payload.note,
-    //     prescriptionUpload: payload.prescriptionUploadId
-    //       ? { connect: { id: payload.prescriptionUploadId } }
-    //       : undefined,
-    //     items: {
-    //       create: itemsData,
-    //     },
-    //   },
-    //   include: orderInclude,
-    // });
-    // 1. Create Medicine Order
     const order = await tx.medicineOrder.create({
       data: {
         orderNumber,
@@ -214,10 +176,6 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
         shippingPhone: payload.shippingPhone,
         shippingAddress: payload.shippingAddress,
         note: payload.note,
-
-        prescriptionUpload: payload.prescriptionUploadId
-          ? { connect: { id: payload.prescriptionUploadId } }
-          : undefined,
 
         items: {
           create: itemsData,

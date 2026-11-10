@@ -1,7 +1,6 @@
 import { Router } from "express";
 import auth from "../../middlewares/auth";
 import { UserRole } from "@prisma/client";
-import { fileUploader } from "../../helper/fileUploader";
 import validateBody from "../../middlewares/validateBody";
 import { MedicineOrderController } from "./medicineOrder.controller";
 import { MedicineOrderValidation } from "./medicineOrderValidation";
@@ -14,7 +13,6 @@ router.get("/my", auth(UserRole.PATIENT), MedicineOrderController.getMyOrders);
 router.post(
   "/",
   auth(UserRole.PATIENT),
-  fileUploader.prescriptionUpload.single("prescription"),
   validateBody(MedicineOrderValidation.createOrderSchema),
   MedicineOrderController.createOrder,
 );
