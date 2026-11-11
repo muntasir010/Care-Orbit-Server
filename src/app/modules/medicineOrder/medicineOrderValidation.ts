@@ -12,7 +12,11 @@ const createOrderSchema = z.object({
   shippingName: z.string().min(2),
   shippingPhone: z
     .string()
-    .regex(/^(?:\+?88)?01[3-9]\d{8}$/, "Enter a valid Bangladeshi mobile number"),
+    .regex(
+      /^(?:\+?88)?01[3-9]\d{8}$/,
+      "Enter a valid Bangladeshi mobile number",
+    ),
+  shippingDistrict: z.string().min(1, "Please select a district"),
   shippingAddress: z.string().min(5),
   paymentMethod: z.enum(["ONLINE", "COD"]).default("ONLINE"),
   note: z.string().optional(),

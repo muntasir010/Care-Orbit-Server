@@ -65,77 +65,33 @@ model CartItem {
   @@map("cart_items")
 }
 
-// ---------- Prescription upload (PATIENT uploads, ADMIN reviews) ----------
-
-// model PrescriptionUpload {
-//   id         String                   @id @default(uuid())
-//   patientId  String
-//   fileUrl    String
-//   status     PrescriptionUploadStatus @default(PENDING)
-//   reviewNote String?
-//   reviewedBy String? // admin email
-//   createdAt  DateTime                 @default(now())
-//   updatedAt  DateTime                 @updatedAt
-
-//   patient Patient        @relation(fields: [patientId], references: [id])
-//   order   MedicineOrder?
-
-//   @@map("prescription_uploads")
-// }
-
-// ---------- Doctor's prescription -> medicines (DOCTOR writes) ----------
-
-// model PrescriptionMedicine {
-//   id             String   @id @default(uuid())
-//   prescriptionId String
-//   medicineId     String
-//   dosage         String // "1 tablet"
-//   frequency      String // "3 times a day"
-//   duration       String // "7 days"
-//   instruction    String?
-//   createdAt      DateTime @default(now())
-
-//   prescriptions Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
-//   medicine      Medicine     @relation(fields: [medicineId], references: [id])
-
-//   @@unique([prescriptionId, medicineId])
-//   @@map("prescription_medicines")
-// }
-
-// ---------- Orders (PATIENT places, ADMIN fulfils) ----------
-
 model MedicineOrder {
-  id              String                @id @default(uuid())
-  orderNumber     String                @unique
-  patientId       String
-  status          MedicineOrderStatus   @default(PENDING)
-  paymentStatus   MedicinePaymentStatus @default(UNPAID)
-  paymentMethod   MedicinePaymentMethod @default(ONLINE)
-  subtotal        Float
-  discount        Float                 @default(0)
-  deliveryFee     Float                 @default(0)
-  totalAmount     Float
-  shippingName    String
-  shippingPhone   String
-  shippingAddress String
-  note            String?
-  transactionId   String?               @unique
+  id            String                @id @default(uuid())
+  orderNumber   String                @unique
+  patientId     String
+  status        MedicineOrderStatus   @default(PENDING)
+  paymentStatus MedicinePaymentStatus @default(UNPAID)
+  paymentMethod MedicinePaymentMethod @default(ONLINE)
 
-  // optional links for prescription-required medicines
-  // prescriptionUploadId String? @unique
-  // prescriptionId       String? // doctor-issued Prescription
+  subtotal    Float
+  discount    Float @default(0)
+  deliveryFee Float @default(0)
+  totalAmount Float
+
+  shippingName     String
+  shippingPhone    String
+  shippingDistrict String
+  shippingAddress  String
+
+  note          String?
+  transactionId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   patient Patient             @relation(fields: [patientId], references: [id])
   items   MedicineOrderItem[]
-  // prescriptionUpload PrescriptionUpload? @relation(fields: [prescriptionUploadId], references: [id])
-  // prescription Prescription?       @relation(fields: [prescriptionId], references: [id])
-
-  payment        Payment?
-  // prescription   Prescription? @relation(fields: [prescriptionId], references: [id])
-  prescriptionId String?
+  payment Payment?
 
   @@index([patientId])
   @@index([status])

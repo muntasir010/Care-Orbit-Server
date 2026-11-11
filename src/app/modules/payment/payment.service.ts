@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 import prisma from "../../shared/prisma";
-import { PaymentStatus } from "@prisma/client";
+import { MedicinePaymentStatus, PaymentStatus } from "@prisma/client";
 
 const handleWebhookEvent = async (event: Stripe.Event) => {
   switch (event.type) {
@@ -40,12 +40,32 @@ const handleWebhookEvent = async (event: Stripe.Event) => {
             return;
           }
 
+          const order = await tx.medicineOrder.findUnique({
+            where: {
+              id: medicineOrderId,
+            },
+          });
+
+          if (!order) {
+            throw new Error("Medicine order not found");
+          }
+
+          if (order.status === "CANCELLED") {
+            throw new Error("Cannot complete payment for a cancelled order");
+          }
+
+          const transactionId =
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : session.payment_intent?.id;
+
           await tx.payment.update({
             where: {
               id: paymentId,
             },
             data: {
               status: PaymentStatus.PAID,
+              transactionId: transactionId ?? payment.transactionId,
               paymentGatewayData: JSON.parse(JSON.stringify(session)),
             },
           });
@@ -55,10 +75,8 @@ const handleWebhookEvent = async (event: Stripe.Event) => {
               id: medicineOrderId,
             },
             data: {
-              paymentStatus: "PAID",
-              transactionId: session.payment_intent
-                ? String(session.payment_intent)
-                : undefined,
+              paymentStatus: MedicinePaymentStatus.PAID,
+              transactionId: transactionId ?? order.transactionId,
             },
           });
         });

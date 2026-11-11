@@ -14,6 +14,7 @@ import {
 } from "../../interfaces/paginationHelper";
 import { stripe } from "../../helper/stripe";
 import { randomUUID } from "crypto";
+import { getMedicineDeliveryFee } from "./medicineOrder.utils";
 
 type TCreateOrderPayload = {
   items: {
@@ -22,6 +23,7 @@ type TCreateOrderPayload = {
   }[];
   shippingName: string;
   shippingPhone: string;
+  shippingDistrict: string;
   shippingAddress: string;
   paymentMethod?: MedicinePaymentMethod;
   note?: string;
@@ -49,6 +51,9 @@ const orderInclude = {
     },
   },
 } satisfies Prisma.MedicineOrderInclude;
+
+// add minimum online payment constant
+const MINIMUM_ONLINE_PAYMENT_BDT = 65;
 
 const getPatient = (email: string) => {
   return prisma.patient.findUniqueOrThrow({
@@ -153,8 +158,9 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
       });
     }
 
-    const deliveryFee = 0;
+    const deliveryFee = getMedicineDeliveryFee(payload.shippingDistrict);
     const discount = 0;
+
     const totalAmount = round2(subtotal - discount + deliveryFee);
 
     const orderNumber = `MO-${Date.now()}`;
@@ -174,6 +180,7 @@ const createOrder = async (user: IAuthUser, payload: TCreateOrderPayload) => {
 
         shippingName: payload.shippingName,
         shippingPhone: payload.shippingPhone,
+        shippingDistrict: payload.shippingDistrict,
         shippingAddress: payload.shippingAddress,
         note: payload.note,
 
@@ -427,14 +434,53 @@ const initiatePaymentForMedicineOrder = async (
     throw new AppError(400, "Payment already completed");
   }
 
+  if (order.totalAmount < MINIMUM_ONLINE_PAYMENT_BDT) {
+    throw new AppError(
+      400,
+      `Online payment requires a minimum order amount of ৳${MINIMUM_ONLINE_PAYMENT_BDT}. Please choose Cash on Delivery.`,
+    );
+  }
+
   if (!order.payment) {
     throw new AppError(404, "Payment record not found");
   }
+
+  // const session = await stripe.checkout.sessions.create({
+  //   payment_method_types: ["card"],
+  //   mode: "payment",
+  //   customer_email: user?.email || "",
+  //   line_items: [
+  //     {
+  //       price_data: {
+  //         currency: "bdt",
+  //         product_data: {
+  //           name: `Medicine Order ${order.orderNumber}`,
+  //         },
+  //         unit_amount: Math.round(order.totalAmount * 100),
+  //       },
+  //       quantity: 1,
+  //     },
+  //   ],
+  //   metadata: {
+  //     orderType: "MEDICINE_ORDER",
+  //     medicineOrderId: order.id,
+  //     paymentId: order.payment.id,
+  //   },
+  //   success_url: `${
+  //     process.env.FRONTEND_URL || "http://localhost:3000"
+  //   }/payment/success?type=medicine&orderId=${order.id}`,
+  //   cancel_url: `${
+  //     process.env.FRONTEND_URL || "http://localhost:3000"
+  //   }/medicines/orders/${order.id}`,
+  // });
+
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",
     customer_email: user?.email || "",
+
     line_items: [
       {
         price_data: {
@@ -447,17 +493,16 @@ const initiatePaymentForMedicineOrder = async (
         quantity: 1,
       },
     ],
+
     metadata: {
       orderType: "MEDICINE_ORDER",
       medicineOrderId: order.id,
       paymentId: order.payment.id,
     },
-    success_url: `${
-      process.env.FRONTEND_URL || "http://localhost:3000"
-    }/payment/success?type=medicine&orderId=${order.id}`,
-    cancel_url: `${
-      process.env.FRONTEND_URL || "http://localhost:3000"
-    }/medicines/orders/${order.id}`,
+
+    success_url: `${frontendUrl}/medicines/order-confirmation?orderId=${order.id}&payment=success`,
+
+    cancel_url: `${frontendUrl}/medicines/order-confirmation?orderId=${order.id}&payment=cancelled`,
   });
 
   await prisma.payment.update({
