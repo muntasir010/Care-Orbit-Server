@@ -16,9 +16,11 @@ const handleStripeWebhookEvent = catchAsync(async (req, res) => {
     console.error(`Error while verifying webhook signature: ${err}`);
     return res.status(400).send(`Webhook Error: ${err}`);
   }
+  console.log("Stripe Webhook Received:", event.type);
+  console.log("Stripe Event ID:", event.id);
 
   const result = await PaymentService.handleWebhookEvent(event);
-
+  console.log("Stripe Webhook Processed Successfully:", event.id);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,

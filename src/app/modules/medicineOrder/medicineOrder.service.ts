@@ -15,6 +15,7 @@ import {
 import { stripe } from "../../helper/stripe";
 import { randomUUID } from "crypto";
 import { getMedicineDeliveryFee } from "./medicineOrder.utils";
+import { PaymentService } from "../payment/payment.service";
 
 type TCreateOrderPayload = {
   items: {
@@ -579,6 +580,27 @@ const markCODPaymentAsPaid = async (orderId: string) => {
   });
 };
 
+const syncMedicinePayment = async (orderId: string, user: IAuthUser) => {
+  const patient = await getPatient(user?.email as string);
+
+  const order = await prisma.medicineOrder.findFirst({
+    where: { id: orderId, patientId: patient.id },
+    include: { payment: true },
+  });
+  if (!order) throw new AppError(404, "Order not found");
+
+  if (order.paymentMethod === MedicinePaymentMethod.ONLINE && order.paymentStatus !== "PAID") {
+    const sessionId = (order.payment?.paymentGatewayData as any)?.id as string | undefined;
+    if (sessionId) {
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      if (session.payment_status === "paid") {
+        await PaymentService.finalizeMedicinePayment(session);
+      }
+    }
+  }
+  return getOrderById(user, orderId);
+};
+
 export const MedicineOrderService = {
   createOrder,
   getOrders,
@@ -589,4 +611,5 @@ export const MedicineOrderService = {
   cancelMyOrder,
   initiatePaymentForMedicineOrder,
   markCODPaymentAsPaid,
+  syncMedicinePayment,
 };

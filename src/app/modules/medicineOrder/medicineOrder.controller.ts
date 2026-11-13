@@ -139,6 +139,21 @@ const markCODPaymentAsPaid = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const syncPayment = catchAsync(
+  async (req: Request & { user?: any }, res: Response) => {
+    const result = await MedicineOrderService.syncMedicinePayment(
+      req.params.id as string,
+      req.user,
+    );
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Payment synced",
+      data: result,
+    });
+  },
+);
+
 export const MedicineOrderController = {
   createOrder,
   getMyOrders,
@@ -148,4 +163,5 @@ export const MedicineOrderController = {
   cancelMyOrder,
   initiatePayment,
   markCODPaymentAsPaid,
+  syncPayment,
 };

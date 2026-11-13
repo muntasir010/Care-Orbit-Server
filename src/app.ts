@@ -16,7 +16,7 @@ import config from "./app/config/config";
 const app: Application = express();
 
 app.post(
-  "/api/v1/payment/webhook",
+  "/api/v1/webhook",
   express.raw({ type: "application/json" }),
   PaymentController.handleStripeWebhookEvent,
 );

@@ -2,85 +2,62 @@ import type Stripe from "stripe";
 import prisma from "../../shared/prisma";
 import { MedicinePaymentStatus, PaymentStatus } from "@prisma/client";
 
+const finalizeMedicinePayment = async (session: Stripe.Checkout.Session) => {
+  const medicineOrderId = session.metadata?.medicineOrderId;
+  const paymentId = session.metadata?.paymentId;
+  if (!medicineOrderId || !paymentId) {
+    throw new Error("Missing medicineOrderId or paymentId in Stripe metadata");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const payment = await tx.payment.findUnique({ where: { id: paymentId } });
+    if (!payment || payment.medicineOrderId !== medicineOrderId) {
+      throw new Error("Medicine order payment record not found");
+    }
+    if (payment.status === PaymentStatus.PAID) return; // idempotent
+
+    const order = await tx.medicineOrder.findUnique({ where: { id: medicineOrderId } });
+    if (!order) throw new Error("Medicine order not found");
+    if (order.status === "CANCELLED") throw new Error("Cannot complete payment for a cancelled order");
+
+    const transactionId =
+      typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
+
+    await tx.payment.update({
+      where: { id: paymentId },
+      data: {
+        status: PaymentStatus.PAID,
+        transactionId: transactionId ?? payment.transactionId,
+        paymentGatewayData: JSON.parse(JSON.stringify(session)),
+      },
+    });
+    await tx.medicineOrder.update({
+      where: { id: medicineOrderId },
+      data: {
+        paymentStatus: MedicinePaymentStatus.PAID,
+        transactionId: transactionId ?? order.transactionId,
+      },
+    });
+  });
+};
+
 const handleWebhookEvent = async (event: Stripe.Event) => {
   switch (event.type) {
+    // console.log("event.type", event.type)
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
+      console.log("checkout session", session);
       const isPaid = session.payment_status === "paid";
-
       if (!isPaid) {
+        console.log("isPaid", isPaid);
         break;
       }
 
       const orderType = session.metadata?.orderType;
 
       // Medicine Order Payment
-      if (orderType === "MEDICINE_ORDER") {
-        const medicineOrderId = session.metadata?.medicineOrderId;
-        const paymentId = session.metadata?.paymentId;
-
-        if (!medicineOrderId || !paymentId) {
-          throw new Error(
-            "Missing medicineOrderId or paymentId in Stripe metadata",
-          );
-        }
-
-        await prisma.$transaction(async (tx) => {
-          const payment = await tx.payment.findUnique({
-            where: {
-              id: paymentId,
-            },
-          });
-
-          if (!payment || payment.medicineOrderId !== medicineOrderId) {
-            throw new Error("Medicine order payment record not found");
-          }
-
-          if (payment.status === PaymentStatus.PAID) {
-            return;
-          }
-
-          const order = await tx.medicineOrder.findUnique({
-            where: {
-              id: medicineOrderId,
-            },
-          });
-
-          if (!order) {
-            throw new Error("Medicine order not found");
-          }
-
-          if (order.status === "CANCELLED") {
-            throw new Error("Cannot complete payment for a cancelled order");
-          }
-
-          const transactionId =
-            typeof session.payment_intent === "string"
-              ? session.payment_intent
-              : session.payment_intent?.id;
-
-          await tx.payment.update({
-            where: {
-              id: paymentId,
-            },
-            data: {
-              status: PaymentStatus.PAID,
-              transactionId: transactionId ?? payment.transactionId,
-              paymentGatewayData: JSON.parse(JSON.stringify(session)),
-            },
-          });
-
-          await tx.medicineOrder.update({
-            where: {
-              id: medicineOrderId,
-            },
-            data: {
-              paymentStatus: MedicinePaymentStatus.PAID,
-              transactionId: transactionId ?? order.transactionId,
-            },
-          });
-        });
-
+      if (orderType === "medicine") {
+        await finalizeMedicinePayment(session);
         break;
       }
 
@@ -124,4 +101,5 @@ const handleWebhookEvent = async (event: Stripe.Event) => {
 
 export const PaymentService = {
   handleWebhookEvent,
+  finalizeMedicinePayment,
 };
