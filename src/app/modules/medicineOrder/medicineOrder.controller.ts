@@ -8,6 +8,7 @@ import {
   orderPaginationFields,
 } from "./medicineOrder.constant";
 import pick from "../../interfaces/pick";
+import AppError from "../../errors/AppError";
 
 // Create Order (Patient)
 const createOrder = catchAsync(
@@ -78,9 +79,24 @@ const getOrderById = catchAsync(
 );
 
 const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
+
+  const { status } = req.body;
+  
+  const allowedStatuses = [
+    "PENDING",
+    "CONFIRMED",
+    "SHIPPED",
+    "DELIVERED",
+    "CANCELLED",
+  ];
+  
+  if (!allowedStatuses.includes(status)) {
+    throw new AppError(400, "Invalid medicine order status");
+  }
+  
   const result = await MedicineOrderService.updateOrderStatus(
     req.params.id as string,
-    req.body.status,
+    status,
   );
 
   sendResponse(res, {
