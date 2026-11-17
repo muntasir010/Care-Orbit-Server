@@ -107,6 +107,24 @@ const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateMyOrderShippingInfo = catchAsync(
+  async (req: Request & { user?: any }, res: Response) => {
+    const result =
+      await MedicineOrderService.updateMyOrderShippingInfo(
+        req.user,
+        req.params.id as string,
+        req.body,
+      );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Shipping information updated successfully",
+      data: result,
+    });
+  },
+);
+
 // Cancel My Order (Patient)
 const cancelMyOrder = catchAsync(
   async (req: Request & { user?: any }, res: Response) => {
@@ -180,4 +198,5 @@ export const MedicineOrderController = {
   initiatePayment,
   markCODPaymentAsPaid,
   syncPayment,
+  updateMyOrderShippingInfo,
 };

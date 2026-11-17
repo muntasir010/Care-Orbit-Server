@@ -371,6 +371,96 @@ const updateOrderStatus = async (id: string, status: MedicineOrderStatus) => {
   });
 };
 
+
+const updateMyOrderShippingInfo = async (
+  user: IAuthUser,
+  orderId: string,
+  payload: {
+    shippingName: string;
+    shippingPhone: string;
+    shippingDistrict: string;
+    shippingAddress: string;
+  },
+) => {
+  const patient = await getPatient(user?.email as string);
+
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.medicineOrder.findFirst({
+      where: {
+        id: orderId,
+        patientId: patient.id,
+      },
+    });
+
+    if (!order) {
+      throw new AppError(404, "Order not found");
+    }
+
+    if (
+      order.status !== MedicineOrderStatus.PENDING ||
+      order.paymentStatus === "PAID"
+    ) {
+      throw new AppError(
+        400,
+        "Shipping information can only be edited for pending unpaid orders.",
+      );
+    }
+
+    const deliveryFee = getMedicineDeliveryFee(
+      payload.shippingDistrict,
+    );
+
+    const totalAmount = round2(
+      order.subtotal - order.discount + deliveryFee,
+    );
+
+    // If the delivery fee changes, also update the related
+    // unpaid payment record so future Stripe sessions use
+    // the latest amount.
+    const payment = await tx.payment.findUnique({
+      where: {
+        medicineOrderId: order.id,
+      },
+    });
+
+    if (payment && payment.status !== PaymentStatus.UNPAID) {
+      throw new AppError(
+        400,
+        "The payment record cannot be changed.",
+      );
+    }
+
+    const updatedOrder = await tx.medicineOrder.update({
+      where: {
+        id: order.id,
+      },
+      data: {
+        shippingName: payload.shippingName,
+        shippingPhone: payload.shippingPhone,
+        shippingDistrict: payload.shippingDistrict,
+        shippingAddress: payload.shippingAddress,
+        deliveryFee,
+        totalAmount,
+      },
+      include: orderInclude,
+    });
+
+    if (payment) {
+      await tx.payment.update({
+        where: {
+          id: payment.id,
+        },
+        data: {
+          amount: totalAmount,
+          paymentGatewayData: Prisma.DbNull,
+        },
+      });
+    }
+
+    return updatedOrder;
+  });
+};
+
 const cancelMyOrder = async (user: IAuthUser, id: string) => {
   const patient = await getPatient(user?.email!);
 
@@ -612,4 +702,5 @@ export const MedicineOrderService = {
   initiatePaymentForMedicineOrder,
   markCODPaymentAsPaid,
   syncMedicinePayment,
+  updateMyOrderShippingInfo,
 };

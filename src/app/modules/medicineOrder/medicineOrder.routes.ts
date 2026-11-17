@@ -29,6 +29,12 @@ router.post(
   MedicineOrderController.initiatePayment,
 );
 
+router.patch(
+  "/my-orders/:id/shipping",
+  auth(UserRole.PATIENT),
+  MedicineOrderController.updateMyOrderShippingInfo,
+);
+
 router.post("/:id/sync-payment", auth(UserRole.PATIENT), MedicineOrderController.syncPayment);
 
 // Get Order By ID (Patient + Admin)
