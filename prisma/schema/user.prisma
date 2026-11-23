@@ -1,15 +1,17 @@
 model User {
-  id                 String     @id @default(uuid())
-  email              String     @unique
-  password           String
-  role               UserRole   @default(PATIENT)
-  needPasswordChange Boolean    @default(true)
-  status             UserStatus @default(ACTIVE)
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-  admin              Admin?
-  doctor             Doctor?
-  patient            Patient?
+  id                          String                       @id @default(uuid())
+  email                       String                       @unique
+  password                    String
+  role                        UserRole                     @default(PATIENT)
+  needPasswordChange          Boolean                      @default(true)
+  status                      UserStatus                   @default(ACTIVE)
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+  admin                       Admin?
+  doctor                      Doctor?
+  patient                     Patient?
+  rider                       Rider?
+  medicineDeliveryAssignments MedicineDeliveryAssignment[]
 
   @@map("users")
 }
@@ -79,6 +81,27 @@ model Patient {
   cart              Cart?
   medicineOrders    MedicineOrder[]
   // prescriptionUploads PrescriptionUpload[]
+  riderReviews      RiderReview[]
 
   @@map("patients")
+}
+
+model Rider {
+  id            String  @id @default(uuid())
+  name          String
+  email         String  @unique
+  profilePhoto  String?
+  contactNumber String
+  address       String?
+  isAvailable   Boolean @default(true)
+  isDeleted     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User                         @relation(fields: [email], references: [email])
+  assignments  MedicineDeliveryAssignment[]
+  riderReviews RiderReview[]
+
+  @@map("riders")
 }

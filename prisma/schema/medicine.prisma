@@ -96,6 +96,8 @@ model MedicineOrder {
   @@index([patientId])
   @@index([status])
   @@map("medicine_orders")
+  medicineDeliveryAssignments MedicineDeliveryAssignment[]
+  riderReviews RiderReview[]
 }
 
 model MedicineOrderItem {

@@ -1,6 +1,7 @@
 enum UserRole {
   PATIENT
   DOCTOR
+  RIDER
   ADMIN
   SUPER_ADMIN
 }
@@ -78,4 +79,12 @@ enum PrescriptionUploadStatus {
 enum MedicinePaymentMethod {
   ONLINE
   COD
+}
+
+enum DeliveryStatus {
+  ASSIGNED
+  PICKED_UP
+  ON_THE_WAY
+  DELIVERED
+  FAILED
 }

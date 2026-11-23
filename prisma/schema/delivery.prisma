@@ -1,0 +1,62 @@
+model MedicineDeliveryAssignment {
+    id           String @id @default(uuid())
+    orderId      String @unique
+    riderId      String
+    assignedById String
+
+    status DeliveryStatus @default(ASSIGNED)
+
+    assignedAt  DateTime  @default(now())
+    pickedUpAt  DateTime?
+    deliveredAt DateTime?
+
+    rider      Rider         @relation(fields: [riderId], references: [id])
+    order      MedicineOrder @relation(fields: [orderId], references: [id])
+    assignedBy User          @relation(fields: [assignedById], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    locations MedicineDeliveryLocation[]
+
+    @@index([riderId])
+    @@index([status])
+    @@map("medicine_delivery_assignments")
+}
+
+model MedicineDeliveryLocation {
+    id           String @id @default(uuid())
+    assignmentId String
+
+    latitude  Float
+    longitude Float
+    accuracy  Float?
+
+    recordedAt DateTime @default(now())
+
+    assignment MedicineDeliveryAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+    @@index([assignmentId])
+    @@map("medicine_delivery_locations")
+}
+
+model RiderReview {
+    id String @id @default(uuid())
+
+    patientId String
+    riderId   String
+    orderId   String @unique
+
+    rating  Float
+    comment String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    patient Patient       @relation(fields: [patientId], references: [id])
+    rider   Rider         @relation(fields: [riderId], references: [id])
+    order   MedicineOrder @relation(fields: [orderId], references: [id])
+
+    @@index([riderId])
+    @@map("rider_reviews")
+}
