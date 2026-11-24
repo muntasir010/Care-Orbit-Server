@@ -14,6 +14,7 @@ import { MetaRoutes } from "../modules/meta/meta.routes";
 import { MedicineRoutes } from "../modules/medicine/medicine.routes";
 import { MedicineOrderRoutes } from "../modules/medicineOrder/medicineOrder.routes";
 import { CartRoutes } from "../modules/cart/cart.routes";
+import { RiderRoutes } from "../modules/rider/rider.routes";
 
 const router = express.Router();
 
@@ -77,6 +78,10 @@ const moduleRoutes = [
   {
     path: "/cart",
     route: CartRoutes,
+  },
+  {
+    path: "/rider",
+    route: RiderRoutes,
   },
 ];
 

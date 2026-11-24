@@ -324,6 +324,18 @@ const getMyProfile = async (user: IAuthUser) => {
       ...profileData,
       admin: profileData,
     };
+  } else if (userInfo.role === UserRole.RIDER) {
+    profileData = await prisma.rider.findUnique({
+      where: {
+        email: userInfo.email,
+      },
+    });
+
+    return {
+      ...userInfo,
+      ...profileData,
+      rider: profileData,
+    };
   }
 
   return {
@@ -388,6 +400,13 @@ const updateMyProfile = async (user: IAuthUser, req: Request) => {
   } else if (userInfo.role === UserRole.PATIENT) {
     // const { contactNumber, ...patientUpdateData } = req.body;
     profileInfo = await prisma.patient.update({
+      where: {
+        email: userInfo.email,
+      },
+      data: req.body,
+    });
+  } else if (userInfo.role === UserRole.RIDER) {
+    profileInfo = await prisma.rider.update({
       where: {
         email: userInfo.email,
       },
