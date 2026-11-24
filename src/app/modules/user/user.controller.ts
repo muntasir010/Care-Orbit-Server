@@ -38,6 +38,17 @@ const CreatePatient = catchAsync(async (req, res) => {
   });
 });
 
+const CreateRider = catchAsync(async (req, res) => {
+  const result = await UserService.CreateRider(req);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Rider created successfully",
+    data: result,
+  });
+});
+
 const getAllUsers = catchAsync(async (req, res) => {
   const filters = pick(req.query, userFilterableFields);
   const options = pick(req.query, userOptionAbleFields);
@@ -99,5 +110,6 @@ export const UserController = {
   CreateAdmin,
   getMyProfile,
   changeProfileStatus,
-  updateMyProfile
+  updateMyProfile,
+  CreateRider,
 };

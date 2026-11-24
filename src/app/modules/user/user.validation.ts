@@ -2,67 +2,66 @@ import { Gender } from "@prisma/client";
 import z from "zod";
 
 const createAdminZodSchema = z.object({
-    password: z.string({
-        error: "Password is required",
+  password: z.string({
+    error: "Password is required",
+  }),
+  admin: z.object({
+    name: z.string({
+      error: "Name is required!",
     }),
-    admin: z.object({
-        name: z.string({
-            error: "Name is required!",
-        }),
-        email: z.string({
-            error: "Email is required!",
-        }),
-        contactNumber: z.string({
-            error: "Contact Number is required!",
-        }),
+    email: z.string({
+      error: "Email is required!",
     }),
+    contactNumber: z.string({
+      error: "Contact Number is required!",
+    }),
+  }),
 });
 
-
 const createDoctorZodSchema = z.object({
-    password: z.string({
-        error: "Password is required",
+  password: z.string({
+    error: "Password is required",
+  }),
+  doctor: z.object({
+    name: z.string({
+      error: "Name is required!",
     }),
-    doctor: z.object({
-        name: z.string({
-            error: "Name is required!",
-        }),
-        email: z.string({
-            error: "Email is required!",
-        }),
-        contactNumber: z.string({
-            error: "Contact Number is required!",
-        }),
-        address: z.string().optional(),
-        registrationNumber: z.string({
-            error: "Reg number is required",
-        }),
-        experience: z.number().optional(),
-        gender: z.enum([Gender.MALE, Gender.FEMALE]),
-        appointmentFee: z.number({
-            error: "Appointment fee is required",
-        }),
-        qualification: z.string({
-            error: "Qualification is required",
-        }),
-        currentWorkingPlace: z.string({
-            error: "Current working place is required!",
-        }),
-        designation: z.string({
-            error: "Designation is required!",
-        }),
-        // NEW: Add specialties array for doctor creation
-        specialties: z
-            .array(
-                z.string().uuid({
-                    message: "Each specialty must be a valid UUID",
-                })
-            )
-            .min(1, {
-                message: "At least one specialty is required",
-            })
-            .optional(),
+    email: z.string({
+      error: "Email is required!",
     }),
+    contactNumber: z.string({
+      error: "Contact Number is required!",
+    }),
+    address: z.string().optional(),
+    registrationNumber: z.string({
+      error: "Reg number is required",
+    }),
+    experience: z.number().optional(),
+    gender: z.enum([Gender.MALE, Gender.FEMALE]),
+    appointmentFee: z.number({
+      error: "Appointment fee is required",
+    }),
+    qualification: z.string({
+      error: "Qualification is required",
+    }),
+    currentWorkingPlace: z.string({
+      error: "Current working place is required!",
+    }),
+    designation: z.string({
+      error: "Designation is required!",
+    }),
+    // NEW: Add specialties array for doctor creation
+    specialties: z
+      .array(
+        z.string().uuid({
+          message: "Each specialty must be a valid UUID",
+        }),
+      )
+      .min(1, {
+        message: "At least one specialty is required",
+      })
+      .optional(),
+  }),
 });
 
 const createPatientZodSchema = z.object({
@@ -70,18 +69,20 @@ const createPatientZodSchema = z.object({
     error: "Password is required!",
   }),
   patient: z.object({
-    email: z.string({ error: "Email is required!" }).email("Invalid email format!"),
-    
+    email: z
+      .string({ error: "Email is required!" })
+      .email("Invalid email format!"),
+
     name: z.string({
-     error: "Name is required!",
+      error: "Name is required!",
     }),
-    
+
     contactNumber: z
       .string({
         error: "Contact number is required!",
       })
       .optional(),
-      
+
     address: z
       .string({
         error: "Address is required!",
@@ -90,8 +91,35 @@ const createPatientZodSchema = z.object({
   }),
 });
 
+const createRiderZodSchema = z.object({
+  password: z
+    .string({
+      error: "Password is required",
+    })
+    .min(6, "Password must be at least 6 characters"),
+
+  rider: z.object({
+    name: z.string({
+      error: "Name is required!",
+    }),
+
+    email: z
+      .string({
+        error: "Email is required!",
+      })
+      .email("Invalid email format!"),
+
+    contactNumber: z.string({
+      error: "Contact Number is required!",
+    }),
+
+    address: z.string().optional(),
+  }),
+});
+
 export const UserValidation = {
   createAdminZodSchema,
   createDoctorZodSchema,
-  createPatientZodSchema
+  createPatientZodSchema,
+  createRiderZodSchema,
 };

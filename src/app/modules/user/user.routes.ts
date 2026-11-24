@@ -57,6 +57,16 @@ router.post(
   },
 );
 
+// rider
+router.post(
+  "/create-rider",
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = UserValidation.createRiderZodSchema.parse(req.body);
+    return UserController.CreateRider(req, res, next);
+  },
+);
+
 router.patch(
   "/:id/status",
   auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),

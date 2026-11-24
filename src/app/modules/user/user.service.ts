@@ -7,6 +7,7 @@ import { paginationHelper } from "../../interfaces/paginationHelper";
 import {
   Doctor,
   Prisma,
+  Rider,
   UserRole,
   UserStatus,
   type Admin,
@@ -178,6 +179,40 @@ const CreatePatient = async (req: Request) => {
     });
 
     return createdPatientData;
+  });
+
+  return result;
+};
+
+const CreateRider = async (req: Request): Promise<Rider> => {
+  const hashedPassword: string = await bcrypt.hash(
+    req.body.password,
+    Number(config.salt_round),
+  );
+
+  const riderData = {
+    ...req.body.rider,
+  };
+
+  const userData = {
+    email: riderData.email,
+    password: hashedPassword,
+    role: UserRole.RIDER,
+    needPasswordChange: true,
+  };
+
+  const result = await prisma.$transaction(async (tx) => {
+    // Step 1: Create User account
+    await tx.user.create({
+      data: userData,
+    });
+
+    // Step 2: Create Rider profile
+    const createdRider = await tx.rider.create({
+      data: riderData,
+    });
+
+    return createdRider;
   });
 
   return result;
@@ -370,4 +405,5 @@ export const UserService = {
   getMyProfile,
   changeProfileStatus,
   updateMyProfile,
+  CreateRider,
 };
