@@ -50,7 +50,53 @@ const getRiderById = async (id: string) => {
   });
 };
 
+const updateRider = async (
+  id: string,
+  payload: {
+    name?: string;
+    contactNumber?: string;
+    address?: string;
+  },
+) => {
+  await prisma.rider.findFirstOrThrow({
+    where: {
+      id,
+      isDeleted: false,
+    },
+  });
+
+  return prisma.rider.update({
+    where: {
+      id,
+    },
+    data: payload,
+  });
+};
+
+const updateRiderAvailability = async (
+  id: string,
+  isAvailable: boolean,
+) => {
+  await prisma.rider.findFirstOrThrow({
+    where: {
+      id,
+      isDeleted: false,
+    },
+  });
+
+  return prisma.rider.update({
+    where: {
+      id,
+    },
+    data: {
+      isAvailable,
+    },
+  });
+};
+
 export const RiderService = {
   getAllRiders,
   getRiderById,
+  updateRider,
+  updateRiderAvailability,
 };

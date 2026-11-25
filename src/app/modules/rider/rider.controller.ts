@@ -27,7 +27,37 @@ const getRiderById = catchAsync(async (req, res) => {
   });
 });
 
+const updateRider = catchAsync(async (req, res) => {
+  const result = await RiderService.updateRider(
+    req.params.id as string,
+    req.body,
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Rider updated successfully",
+    data: result,
+  });
+});
+
+const updateRiderAvailability = catchAsync(async (req, res) => {
+  const result = await RiderService.updateRiderAvailability(
+    req.params.id as string,
+    req.body.isAvailable,
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Rider availability updated successfully",
+    data: result,
+  });
+});
+
 export const RiderController = {
   getAllRiders,
   getRiderById,
+  updateRider,
+  updateRiderAvailability,
 };
