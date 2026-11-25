@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import { DeliveryStatus } from "@prisma/client";
 import prisma from "../../shared/prisma";
 import AppError from "../../errors/AppError";
+import { IAuthUser } from "../../interfaces/common";
 
 const getAllRiders = async () => {
   return prisma.rider.findMany({
@@ -133,10 +134,63 @@ const deleteRider = async (id: string) => {
   });
 };
 
+const getMyDeliveries = async (authUser: IAuthUser) => {
+  const rider = await prisma.rider.findFirstOrThrow({
+    where: {
+      email: authUser?.email,
+      isDeleted: false,
+    },
+  });
+
+  return prisma.medicineDeliveryAssignment.findMany({
+    where: {
+      riderId: rider.id,
+    },
+    include: {
+      order: {
+        include: {
+          items: {
+            include: {
+              medicine: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                  strength: true,
+                  form: true,
+                },
+              },
+            },
+          },
+          patient: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              contactNumber: true,
+              address: true,
+            },
+          },
+        },
+      },
+      locations: {
+        orderBy: {
+          recordedAt: "desc",
+        },
+        take: 1,
+      },
+    },
+    orderBy: {
+      assignedAt: "desc",
+    },
+  });
+};
+
 export const RiderService = {
   getAllRiders,
   getRiderById,
   updateRider,
   updateRiderAvailability,
   deleteRider,
+  getMyDeliveries,
 };

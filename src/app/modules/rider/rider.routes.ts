@@ -46,4 +46,11 @@ router.delete(
   RiderController.deleteRider,
 );
 
+// Rider can access this route to get their own deliveries
+router.get(
+  "/my-deliveries",
+  auth(UserRole.RIDER),
+  RiderController.getMyDeliveries,
+);
+
 export const RiderRoutes = router;

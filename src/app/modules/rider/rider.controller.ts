@@ -1,7 +1,9 @@
+import type{ Request, Response } from 'express';
 import httpStatus from 'http-status';
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { RiderService } from "./rider.service";
+import { IAuthUser } from '../../interfaces/common';
 
 const getAllRiders = catchAsync(async (req, res) => {
   const result = await RiderService.getAllRiders();
@@ -68,10 +70,27 @@ const deleteRider = catchAsync(async (req, res) => {
   });
 });
 
+const getMyDeliveries = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const result = await RiderService.getMyDeliveries(
+      req.user as IAuthUser,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "My deliveries retrieved successfully",
+      data: result,
+    });
+  },
+);
+
+
 export const RiderController = {
   getAllRiders,
   getRiderById,
   updateRider,
   updateRiderAvailability,
   deleteRider,
+  getMyDeliveries,
 };
