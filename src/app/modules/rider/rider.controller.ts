@@ -14,6 +14,20 @@ const getAllRiders = catchAsync(async (req, res) => {
   });
 });
 
+const getRiderById = catchAsync(async (req, res) => {
+  const result = await RiderService.getRiderById(
+    req.params.id as string,
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Rider retrieved successfully",
+    data: result,
+  });
+});
+
 export const RiderController = {
   getAllRiders,
+  getRiderById,
 };

@@ -26,6 +26,31 @@ const getAllRiders = async () => {
   });
 };
 
+const getRiderById = async (id: string) => {
+  return prisma.rider.findFirstOrThrow({
+    where: {
+      id,
+      isDeleted: false,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          status: true,
+        },
+      },
+      _count: {
+        select: {
+          assignments: true,
+          riderReviews: true,
+        },
+      },
+    },
+  });
+};
+
 export const RiderService = {
   getAllRiders,
+  getRiderById,
 };

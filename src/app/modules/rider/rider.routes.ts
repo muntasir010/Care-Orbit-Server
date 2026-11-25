@@ -11,4 +11,10 @@ router.get(
   RiderController.getAllRiders,
 );
 
+router.get(
+  "/:id",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  RiderController.getRiderById,
+);
+
 export const RiderRoutes = router;
