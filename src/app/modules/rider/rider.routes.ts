@@ -53,4 +53,14 @@ router.get(
   RiderController.getMyDeliveries,
 );
 
+router.patch(
+  "/assignments/:assignmentId/status",
+  auth(UserRole.RIDER),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = RiderValidation.updateDeliveryStatusZodSchema.parse(req.body);
+    next();
+  },
+  RiderController.updateDeliveryStatus,
+);
+
 export const RiderRoutes = router;

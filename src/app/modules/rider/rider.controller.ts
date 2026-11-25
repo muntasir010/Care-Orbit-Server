@@ -85,6 +85,22 @@ const getMyDeliveries = catchAsync(
   },
 );
 
+const updateDeliveryStatus = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const result = await RiderService.updateDeliveryStatus(
+      req.user as IAuthUser,
+      req.params.assignmentId as string,
+      req.body.status,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Delivery status updated successfully",
+      data: result,
+    });
+  },
+);
 
 export const RiderController = {
   getAllRiders,
@@ -93,4 +109,5 @@ export const RiderController = {
   updateRiderAvailability,
   deleteRider,
   getMyDeliveries,
+  updateDeliveryStatus,
 };

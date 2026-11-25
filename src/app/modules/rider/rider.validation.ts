@@ -10,7 +10,12 @@ const updateAvailabilityZodSchema = z.object({
   isAvailable: z.boolean(),
 });
 
+const updateDeliveryStatusZodSchema = z.object({
+  status: z.enum(["PICKED_UP", "ON_THE_WAY", "DELIVERED", "FAILED"]),
+});
+
 export const RiderValidation = {
   updateRiderZodSchema,
-    updateAvailabilityZodSchema,
+  updateAvailabilityZodSchema,
+  updateDeliveryStatusZodSchema,
 };
