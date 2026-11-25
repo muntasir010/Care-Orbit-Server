@@ -7,6 +7,7 @@ import { RiderValidation } from "./rider.validation";
 
 const router = Router();
 
+// Admin and Super Admin can access these routes
 router.get(
   "/",
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
@@ -37,6 +38,12 @@ router.patch(
     next();
   },
   RiderController.updateRiderAvailability,
+);
+
+router.delete(
+  "/:id",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  RiderController.deleteRider,
 );
 
 export const RiderRoutes = router;
