@@ -60,4 +60,10 @@ router.patch(
   MedicineOrderController.markCODPaymentAsPaid,
 );
 
+router.post(
+  "/:orderId/assign-rider",
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  MedicineOrderController.assignRider,
+);
+
 export const MedicineOrderRoutes = router;

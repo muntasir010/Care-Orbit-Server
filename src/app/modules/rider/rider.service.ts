@@ -157,7 +157,6 @@ const getMyDeliveries = async (authUser: IAuthUser) => {
                   name: true,
                   image: true,
                   strength: true,
-                  form: true,
                 },
               },
             },

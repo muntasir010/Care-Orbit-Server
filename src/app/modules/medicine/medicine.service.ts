@@ -90,12 +90,6 @@ const getAllFromDB = async (
 
   if (form) and.push({ dosageForm: form as any });
 
-  if (requiresPrescription !== undefined && requiresPrescription !== "")
-    and.push({
-      requiresPrescription:
-        requiresPrescription === "true" || requiresPrescription === true,
-    });
-
   if (inStock === "true" || inStock === true) and.push({ stock: { gt: 0 } });
 
   // 3) Price range

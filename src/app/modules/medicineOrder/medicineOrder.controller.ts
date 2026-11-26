@@ -1,3 +1,4 @@
+import httpStatus from 'http-status';
 import type { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";
 import { fileUploader } from "../../helper/fileUploader";
@@ -9,6 +10,7 @@ import {
 } from "./medicineOrder.constant";
 import pick from "../../interfaces/pick";
 import AppError from "../../errors/AppError";
+import { IAuthUser } from "../../interfaces/common";
 
 // Create Order (Patient)
 const createOrder = catchAsync(
@@ -188,6 +190,26 @@ const syncPayment = catchAsync(
   },
 );
 
+const assignRider = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const { orderId } = req.params;
+    const { riderId } = req.body;
+
+    const result = await MedicineOrderService.assignRider(
+      orderId as string,
+      riderId,
+      req.user as IAuthUser,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Rider assigned successfully",
+      data: result,
+    });
+  },
+);
+
 export const MedicineOrderController = {
   createOrder,
   getMyOrders,
@@ -199,4 +221,5 @@ export const MedicineOrderController = {
   markCODPaymentAsPaid,
   syncPayment,
   updateMyOrderShippingInfo,
+  assignRider,
 };

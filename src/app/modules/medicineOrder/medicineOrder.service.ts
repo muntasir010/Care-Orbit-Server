@@ -1,4 +1,6 @@
+import httpStatus from 'http-status';
 import {
+  DeliveryStatus,
   MedicineOrderStatus,
   MedicinePaymentMethod,
   PaymentStatus,
@@ -691,6 +693,106 @@ const syncMedicinePayment = async (orderId: string, user: IAuthUser) => {
   return getOrderById(user, orderId);
 };
 
+const assignRider = async (
+  orderId: string,
+  riderId: string,
+  authUser: IAuthUser,
+) => {
+  // Find admin user
+  const admin = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: authUser?.email,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return prisma.$transaction(async (tx) => {
+    // Check order
+    const order = await tx.medicineOrder.findUnique({
+      where: {
+        id: orderId,
+      },
+    });
+
+    if (!order) {
+      throw new AppError(
+        httpStatus.NOT_FOUND,
+        "Medicine order not found",
+      );
+    }
+
+    if (
+      order.status === MedicineOrderStatus.CANCELLED ||
+      order.status === MedicineOrderStatus.DELIVERED
+    ) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Cannot assign rider to this order",
+      );
+    }
+
+    // Check rider
+    const rider = await tx.rider.findFirst({
+      where: {
+        id: riderId,
+        isDeleted: false,
+        isAvailable: true,
+      },
+    });
+
+    if (!rider) {
+      throw new AppError(
+        httpStatus.NOT_FOUND,
+        "Available rider not found",
+      );
+    }
+
+    // Prevent duplicate assignment
+    const existingAssignment =
+      await tx.medicineDeliveryAssignment.findUnique({
+        where: {
+          orderId,
+        },
+      });
+
+    if (existingAssignment) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "This order already has a rider assigned",
+      );
+    }
+
+    // Create assignment
+    const assignment =
+      await tx.medicineDeliveryAssignment.create({
+        data: {
+          orderId,
+          riderId,
+          assignedById: admin.id,
+          status: DeliveryStatus.ASSIGNED,
+        },
+        include: {
+          rider: true,
+          order: true,
+        },
+      });
+
+    // Rider is no longer available for another delivery
+    await tx.rider.update({
+      where: {
+        id: riderId,
+      },
+      data: {
+        isAvailable: false,
+      },
+    });
+
+    return assignment;
+  });
+};
+
 export const MedicineOrderService = {
   createOrder,
   getOrders,
@@ -703,4 +805,5 @@ export const MedicineOrderService = {
   markCODPaymentAsPaid,
   syncMedicinePayment,
   updateMyOrderShippingInfo,
+  assignRider,
 };
