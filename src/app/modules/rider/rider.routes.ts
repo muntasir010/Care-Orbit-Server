@@ -63,4 +63,14 @@ router.patch(
   RiderController.updateDeliveryStatus,
 );
 
+router.post(
+  "/assignments/:assignmentId/location",
+  auth(UserRole.RIDER),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = RiderValidation.updateLocationZodSchema.parse(req.body);
+    next();
+  },
+  RiderController.updateRiderLocation,
+);
+
 export const RiderRoutes = router;

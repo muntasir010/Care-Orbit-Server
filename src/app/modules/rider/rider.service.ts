@@ -198,34 +198,21 @@ const updateDeliveryStatus = async (
     },
   });
 
-  const assignment =
-    await prisma.medicineDeliveryAssignment.findFirst({
-      where: {
-        id: assignmentId,
-        riderId: rider.id,
-      },
-    });
+  const assignment = await prisma.medicineDeliveryAssignment.findFirst({
+    where: {
+      id: assignmentId,
+      riderId: rider.id,
+    },
+  });
 
   if (!assignment) {
-    throw new AppError(
-      httpStatus.NOT_FOUND,
-      "Delivery assignment not found",
-    );
+    throw new AppError(httpStatus.NOT_FOUND, "Delivery assignment not found");
   }
 
   const allowedTransitions: Record<string, DeliveryStatus[]> = {
-    ASSIGNED: [
-      DeliveryStatus.PICKED_UP,
-      DeliveryStatus.FAILED,
-    ],
-    PICKED_UP: [
-      DeliveryStatus.ON_THE_WAY,
-      DeliveryStatus.FAILED,
-    ],
-    ON_THE_WAY: [
-      DeliveryStatus.DELIVERED,
-      DeliveryStatus.FAILED,
-    ],
+    ASSIGNED: [DeliveryStatus.PICKED_UP, DeliveryStatus.FAILED],
+    PICKED_UP: [DeliveryStatus.ON_THE_WAY, DeliveryStatus.FAILED],
+    ON_THE_WAY: [DeliveryStatus.DELIVERED, DeliveryStatus.FAILED],
     DELIVERED: [],
     FAILED: [],
   };
@@ -238,21 +225,20 @@ const updateDeliveryStatus = async (
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    const updatedAssignment =
-      await tx.medicineDeliveryAssignment.update({
-        where: {
-          id: assignmentId,
-        },
-        data: {
-          status: nextStatus,
-          ...(nextStatus === DeliveryStatus.PICKED_UP && {
-            pickedUpAt: new Date(),
-          }),
-          ...(nextStatus === DeliveryStatus.DELIVERED && {
-            deliveredAt: new Date(),
-          }),
-        },
-      });
+    const updatedAssignment = await tx.medicineDeliveryAssignment.update({
+      where: {
+        id: assignmentId,
+      },
+      data: {
+        status: nextStatus,
+        ...(nextStatus === DeliveryStatus.PICKED_UP && {
+          pickedUpAt: new Date(),
+        }),
+        ...(nextStatus === DeliveryStatus.DELIVERED && {
+          deliveredAt: new Date(),
+        }),
+      },
+    });
 
     if (nextStatus === DeliveryStatus.DELIVERED) {
       await tx.medicineOrder.update({
@@ -291,6 +277,53 @@ const updateDeliveryStatus = async (
   return result;
 };
 
+const updateRiderLocation = async (
+  authUser: IAuthUser,
+  assignmentId: string,
+  payload: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+  },
+) => {
+  const rider = await prisma.rider.findFirstOrThrow({
+    where: {
+      email: authUser?.email,
+      isDeleted: false,
+    },
+  });
+
+  const assignment = await prisma.medicineDeliveryAssignment.findFirst({
+    where: {
+      id: assignmentId,
+      riderId: rider.id,
+      status: {
+        in: [
+          DeliveryStatus.ASSIGNED,
+          DeliveryStatus.PICKED_UP,
+          DeliveryStatus.ON_THE_WAY,
+        ],
+      },
+    },
+  });
+
+  if (!assignment) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Active delivery assignment not found",
+    );
+  }
+
+  return prisma.medicineDeliveryLocation.create({
+    data: {
+      assignmentId,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      accuracy: payload.accuracy,
+    },
+  });
+};
+
 export const RiderService = {
   getAllRiders,
   getRiderById,
@@ -299,4 +332,5 @@ export const RiderService = {
   deleteRider,
   getMyDeliveries,
   updateDeliveryStatus,
+  updateRiderLocation,
 };

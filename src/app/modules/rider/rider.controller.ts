@@ -102,6 +102,23 @@ const updateDeliveryStatus = catchAsync(
   },
 );
 
+const updateRiderLocation = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const result = await RiderService.updateRiderLocation(
+      req.user as IAuthUser,
+      req.params.assignmentId as string,
+      req.body,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Rider location saved successfully",
+      data: result,
+    });
+  },
+);
+
 export const RiderController = {
   getAllRiders,
   getRiderById,
@@ -110,4 +127,5 @@ export const RiderController = {
   deleteRider,
   getMyDeliveries,
   updateDeliveryStatus,
+  updateRiderLocation,
 };
