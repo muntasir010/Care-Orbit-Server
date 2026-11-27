@@ -864,6 +864,75 @@ const getMedicineOrderTracking = async (
   };
 };
 
+const createRiderReview = async (
+  orderId: string,
+  payload: {
+    rating: number;
+    comment: string;
+  },
+  authUser: IAuthUser,
+) => {
+  const patient = await prisma.patient.findUnique({
+    where: {
+      email: authUser?.email,
+    },
+  });
+
+  if (!patient) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Patient profile not found",
+    );
+  }
+
+  const assignment =
+    await prisma.medicineDeliveryAssignment.findUnique({
+      where: {
+        orderId,
+      },
+      include: {
+        order: true,
+      },
+    });
+
+  if (!assignment || assignment.order.patientId !== patient.id) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Delivery assignment not found",
+    );
+  }
+
+  if (assignment.status !== DeliveryStatus.DELIVERED) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "You can review the rider after delivery",
+    );
+  }
+
+  const existingReview = await prisma.riderReview.findUnique({
+    where: {
+      orderId,
+    },
+  });
+
+  if (existingReview) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "You have already reviewed this rider",
+    );
+  }
+
+  return prisma.riderReview.create({
+    data: {
+      patientId: patient.id,
+      riderId: assignment.riderId,
+      orderId,
+      rating: payload.rating,
+      comment: payload.comment,
+    },
+  });
+};
+
 export const MedicineOrderService = {
   createOrder,
   getOrders,
@@ -878,4 +947,5 @@ export const MedicineOrderService = {
   updateMyOrderShippingInfo,
   assignRider,
   getMedicineOrderTracking,
+  createRiderReview,
 };

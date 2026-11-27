@@ -226,6 +226,23 @@ const getMedicineOrderTracking = catchAsync(
   },
 );
 
+const createRiderReview = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const result = await MedicineOrderService.createRiderReview(
+      req.params.orderId as string,
+      req.body,
+      req.user as IAuthUser,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Rider review submitted successfully",
+      data: result,
+    });
+  },
+);
+
 export const MedicineOrderController = {
   createOrder,
   getMyOrders,
@@ -239,4 +256,5 @@ export const MedicineOrderController = {
   updateMyOrderShippingInfo,
   assignRider,
   getMedicineOrderTracking,
+  createRiderReview,
 };

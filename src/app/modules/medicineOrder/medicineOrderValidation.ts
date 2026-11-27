@@ -26,7 +26,13 @@ const updateOrderStatusSchema = z.object({
   status: z.enum(["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"]),
 });
 
+const riderReviewSchema = z.object({
+  rating: z.number().min(1).max(5),
+  comment: z.string().min(3).max(1000),
+});
+
 export const MedicineOrderValidation = {
   createOrderSchema,
   updateOrderStatusSchema,
+  riderReviewSchema,
 };

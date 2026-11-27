@@ -1,4 +1,4 @@
-import { Router } from "express";
+import {type Request, type Response, type NextFunction , Router } from "express";
 import auth from "../../middlewares/auth";
 import { UserRole } from "@prisma/client";
 import validateBody from "../../middlewares/validateBody";
@@ -41,6 +41,16 @@ router.get(
   "/:orderId/tracking",
   auth(UserRole.PATIENT),
   MedicineOrderController.getMedicineOrderTracking,
+);
+
+router.post(
+  "/:orderId/rider-review",
+  auth(UserRole.PATIENT),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body =  MedicineOrderValidation.riderReviewSchema.parse(req.body);
+    next();
+  },
+  MedicineOrderController.createRiderReview,
 );
 
 // Get Order By ID (Patient + Admin)
