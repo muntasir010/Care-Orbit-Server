@@ -1,4 +1,4 @@
-import httpStatus from 'http-status';
+import httpStatus from "http-status";
 import {
   DeliveryStatus,
   MedicineOrderStatus,
@@ -373,7 +373,6 @@ const updateOrderStatus = async (id: string, status: MedicineOrderStatus) => {
   });
 };
 
-
 const updateMyOrderShippingInfo = async (
   user: IAuthUser,
   orderId: string,
@@ -408,13 +407,9 @@ const updateMyOrderShippingInfo = async (
       );
     }
 
-    const deliveryFee = getMedicineDeliveryFee(
-      payload.shippingDistrict,
-    );
+    const deliveryFee = getMedicineDeliveryFee(payload.shippingDistrict);
 
-    const totalAmount = round2(
-      order.subtotal - order.discount + deliveryFee,
-    );
+    const totalAmount = round2(order.subtotal - order.discount + deliveryFee);
 
     // If the delivery fee changes, also update the related
     // unpaid payment record so future Stripe sessions use
@@ -426,10 +421,7 @@ const updateMyOrderShippingInfo = async (
     });
 
     if (payment && payment.status !== PaymentStatus.UNPAID) {
-      throw new AppError(
-        400,
-        "The payment record cannot be changed.",
-      );
+      throw new AppError(400, "The payment record cannot be changed.");
     }
 
     const updatedOrder = await tx.medicineOrder.update({
@@ -681,8 +673,13 @@ const syncMedicinePayment = async (orderId: string, user: IAuthUser) => {
   });
   if (!order) throw new AppError(404, "Order not found");
 
-  if (order.paymentMethod === MedicinePaymentMethod.ONLINE && order.paymentStatus !== "PAID") {
-    const sessionId = (order.payment?.paymentGatewayData as any)?.id as string | undefined;
+  if (
+    order.paymentMethod === MedicinePaymentMethod.ONLINE &&
+    order.paymentStatus !== "PAID"
+  ) {
+    const sessionId = (order.payment?.paymentGatewayData as any)?.id as
+      | string
+      | undefined;
     if (sessionId) {
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       if (session.payment_status === "paid") {
@@ -717,10 +714,7 @@ const assignRider = async (
     });
 
     if (!order) {
-      throw new AppError(
-        httpStatus.NOT_FOUND,
-        "Medicine order not found",
-      );
+      throw new AppError(httpStatus.NOT_FOUND, "Medicine order not found");
     }
 
     if (
@@ -743,19 +737,15 @@ const assignRider = async (
     });
 
     if (!rider) {
-      throw new AppError(
-        httpStatus.NOT_FOUND,
-        "Available rider not found",
-      );
+      throw new AppError(httpStatus.NOT_FOUND, "Available rider not found");
     }
 
     // Prevent duplicate assignment
-    const existingAssignment =
-      await tx.medicineDeliveryAssignment.findUnique({
-        where: {
-          orderId,
-        },
-      });
+    const existingAssignment = await tx.medicineDeliveryAssignment.findUnique({
+      where: {
+        orderId,
+      },
+    });
 
     if (existingAssignment) {
       throw new AppError(
@@ -765,19 +755,18 @@ const assignRider = async (
     }
 
     // Create assignment
-    const assignment =
-      await tx.medicineDeliveryAssignment.create({
-        data: {
-          orderId,
-          riderId,
-          assignedById: admin.id,
-          status: DeliveryStatus.ASSIGNED,
-        },
-        include: {
-          rider: true,
-          order: true,
-        },
-      });
+    const assignment = await tx.medicineDeliveryAssignment.create({
+      data: {
+        orderId,
+        riderId,
+        assignedById: admin.id,
+        status: DeliveryStatus.ASSIGNED,
+      },
+      include: {
+        rider: true,
+        order: true,
+      },
+    });
 
     // Rider is no longer available for another delivery
     await tx.rider.update({
@@ -793,6 +782,88 @@ const assignRider = async (
   });
 };
 
+const getMedicineOrderTracking = async (
+  orderId: string,
+  authUser: IAuthUser,
+) => {
+  // Find patient profile
+  const patient = await prisma.patient.findUnique({
+    where: {
+      email: authUser?.email,
+    },
+  });
+
+  if (!patient) {
+    throw new AppError(httpStatus.NOT_FOUND, "Patient profile not found");
+  }
+
+  // Check order ownership
+  const order = await prisma.medicineOrder.findFirst({
+    where: {
+      id: orderId,
+      patientId: patient.id,
+    },
+    select: {
+      id: true,
+      status: true,
+      paymentStatus: true,
+      medicineDeliveryAssignments: {
+        include: {
+          rider: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              contactNumber: true,
+              profilePhoto: true,
+            },
+          },
+          locations: {
+            orderBy: {
+              recordedAt: "desc",
+            },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new AppError(httpStatus.NOT_FOUND, "Medicine order not found");
+  }
+
+  const assignment = order.medicineDeliveryAssignments[0];
+
+  if (!assignment) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "No rider assigned to this order yet",
+    );
+  }
+
+  const latestLocation = assignment.locations[0] ?? null;
+
+  return {
+    orderId: order.id,
+    orderStatus: order.status,
+    paymentStatus: order.paymentStatus,
+    deliveryStatus: assignment.status,
+    assignedAt: assignment.assignedAt,
+    pickedUpAt: assignment.pickedUpAt,
+    deliveredAt: assignment.deliveredAt,
+    rider: assignment.rider,
+    currentLocation: latestLocation
+      ? {
+          latitude: latestLocation.latitude,
+          longitude: latestLocation.longitude,
+          accuracy: latestLocation.accuracy,
+          recordedAt: latestLocation.recordedAt,
+        }
+      : null,
+  };
+};
+
 export const MedicineOrderService = {
   createOrder,
   getOrders,
@@ -806,4 +877,5 @@ export const MedicineOrderService = {
   syncMedicinePayment,
   updateMyOrderShippingInfo,
   assignRider,
+  getMedicineOrderTracking,
 };

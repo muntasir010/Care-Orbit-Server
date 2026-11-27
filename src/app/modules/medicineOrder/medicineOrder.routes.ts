@@ -37,6 +37,12 @@ router.patch(
 
 router.post("/:id/sync-payment", auth(UserRole.PATIENT), MedicineOrderController.syncPayment);
 
+router.get(
+  "/:orderId/tracking",
+  auth(UserRole.PATIENT),
+  MedicineOrderController.getMedicineOrderTracking,
+);
+
 // Get Order By ID (Patient + Admin)
 router.get(
   "/:id",

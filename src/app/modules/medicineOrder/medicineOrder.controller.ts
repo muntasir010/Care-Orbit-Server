@@ -210,6 +210,22 @@ const assignRider = catchAsync(
   },
 );
 
+const getMedicineOrderTracking = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const result = await MedicineOrderService.getMedicineOrderTracking(
+      req.params.orderId as string,
+      req.user as IAuthUser,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Medicine order tracking retrieved successfully",
+      data: result,
+    });
+  },
+);
+
 export const MedicineOrderController = {
   createOrder,
   getMyOrders,
@@ -222,4 +238,5 @@ export const MedicineOrderController = {
   syncPayment,
   updateMyOrderShippingInfo,
   assignRider,
+  getMedicineOrderTracking,
 };
